@@ -1,32 +1,14 @@
-# Prerequisites
-*.d
+# Build folders and other catkin stuff
+build/
+devel/
+log/
+logs/
+install/
+.catkin_workspace
+.catkin_tools/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# VS code folder (force add if needed)
+.vscode/
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# Others
+**/.DS_Store
