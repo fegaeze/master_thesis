@@ -1,0 +1,32 @@
+<launch>
+    <arg name="user_debug" default="false"/>
+    <arg name="wname" default="earth"/>
+
+    <arg name="debug" default="false"/>
+    <arg name="gui" default="false"/>
+    <arg name="headless" default="false"/>
+    <arg name="paused" default="true"/>
+    <arg name="use_sim_time" default="true"/>
+    
+    
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find unitree_gazebo)/worlds/$(arg wname).world"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+    <param name="robot_description"
+           command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro' 
+           DEBUG:=$(arg user_debug)"/>
+
+    <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"
+          args="-urdf -z 0.6 -model go1 -param robot_description -unpause"/>
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
+          respawn="false" output="screen">
+        <remap from="/joint_states" to="/go1/joint_states"/>
+    </node>
+</launch>
