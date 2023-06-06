@@ -13,7 +13,7 @@
     <rosparam file="$(find go1_description)/config/robot_control.yaml" command="load"/>
 
     <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="false"
-          output="screen" ns="go1" args="joint_state_controller
+          output="screen" ns="/go1_gazebo" args="joint_state_controller
           FL_hip_controller FL_thigh_controller FL_calf_controller
           FR_hip_controller FR_thigh_controller FR_calf_controller
           RL_hip_controller RL_thigh_controller RL_calf_controller

@@ -27,6 +27,6 @@
 
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
           respawn="false" output="screen">
-        <remap from="/joint_states" to="/go1/joint_states"/>
+        <remap from="/joint_states" to="/go1_gazebo/joint_states"/>
     </node>
 </launch>
