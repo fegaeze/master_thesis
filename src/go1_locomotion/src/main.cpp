@@ -3,10 +3,10 @@ Copyright (c) 2018-2019, Unitree Robotics.Co.Ltd. All rights reserved.
 Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 ************************************************************************/
 
-
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/Imu.h>
 #include "utils.h"
+#include "kinematics.h"
 
 using namespace std;
 using namespace unitree_model;
@@ -222,11 +222,34 @@ int main(int argc, char **argv)
 
     motion_init();
 
+    ros::Duration(2.0).sleep();
+
+    std::vector<double> endEffectorPos = {-0.2, 0.1, 0.1};
+    Kinematics frlKinematics(endEffectorPos, "FR_Leg"); 
+    std::vector<double> jointAngles = frlKinematics.ikSolver();
+
+    std::cout << "Desired Joint Angles: " << jointAngles[0] << ", " << jointAngles[1] << ", " << jointAngles[2] << std::endl;
+
+    double pos[12] = {0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
+                      0.0, 0.67, -1.3, -0.0, 0.67, -1.3};
+
+    double pos_calc[12] = {jointAngles[0], jointAngles[1], jointAngles[2], -0.0, 0.67, -1.3,
+                           0.0, 0.67, -1.3, -0.0, 0.67, -1.3};
+
     while (ros::ok())
     {
- 
+
+        moveAllPosition(pos, 3000);
         lowState_pub.publish(lowState);
         sendServoCmd();
+
+        ros::Duration(1.0).sleep();
+
+        moveAllPosition(pos_calc, 3000);
+        lowState_pub.publish(lowState);
+        sendServoCmd();
+
+        ros::Duration(1.0).sleep();
 
     }
     return 0;
