@@ -21,6 +21,7 @@ include_directories(
 
 add_library(utils src/utils.cpp)
 add_dependencies(utils unitree_legged_msgs_gencpp)
+target_link_libraries(utils ${catkin_LIBRARIES} ${EXTRA_LIBS})
 
 add_library(kinematics src/kinematics.cpp)
 

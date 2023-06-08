@@ -1,5 +1,4 @@
 
-#include <cmath>
 #include "utils.h"
 
 namespace unitree_model
@@ -46,6 +45,7 @@ namespace unitree_model
     {
         paramInit();
         stand();
+
     }
 
     void sendServoCmd()
@@ -58,19 +58,15 @@ namespace unitree_model
         usleep(1000);
     }
 
-    void moveAllPosition(double *targetPos, double duration)
+    void moveAllPosition(double* targetPos, double duration)
     {
-        double pos[12], lastPos[12], percent;
-        for (int j = 0; j < 12; j++)
-            lastPos[j] = lowState.motorState[j].q;
-        for (int i = 1; i <= duration; i++)
-        {
-            if (!ros::ok())
-                break;
-            percent = (double)i / duration;
-            for (int j = 0; j < 12; j++)
-            {
-                lowCmd.motorCmd[j].q = lastPos[j] * (1 - percent) + targetPos[j] * percent;
+        double pos[12] ,lastPos[12], percent;
+        for(int j=0; j<12; j++) lastPos[j] = lowState.motorState[j].q;
+        for(int i=1; i<=duration; i++){
+            if(!ros::ok()) break;
+            percent = (double)i/duration;
+            for(int j=0; j<12; j++){
+                lowCmd.motorCmd[j].q = lastPos[j]*(1-percent) + targetPos[j]*percent; 
             }
             sendServoCmd();
         }

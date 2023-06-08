@@ -5,8 +5,10 @@ Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/Imu.h>
+
 #include "utils.h"
 #include "kinematics.h"
+
 
 using namespace std;
 using namespace unitree_model;
@@ -221,8 +223,6 @@ int main(int argc, char **argv)
     servo_pub[11] = n.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_calf_controller/command", 1);
 
     motion_init();
-
-    ros::Duration(2.0).sleep();
 
     std::vector<double> endEffectorPos = {-0.2, 0.1, 0.1};
     Kinematics frlKinematics(endEffectorPos, "FR_Leg"); 

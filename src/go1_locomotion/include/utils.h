@@ -2,6 +2,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <cmath>
 #include <ros/ros.h>
 #include <tf/tf.h>
 
