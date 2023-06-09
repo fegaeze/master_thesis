@@ -23,5 +23,5 @@
           RR_hip_controller RR_thigh_controller RR_calf_controller "/>
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" />
-    <node pkg="go1_locomotion" type="go1_locomotion_main" name="go1_locomotion_main" respawn="true" output="screen" />
+    <node pkg="go1_locomotion" type="go1_locomotion_main" name="go1_locomotion_main" respawn="false" output="screen" />
 </launch>

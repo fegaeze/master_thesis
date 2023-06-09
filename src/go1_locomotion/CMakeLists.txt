@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
     genmsg
     roscpp
     unitree_legged_msgs
+	tf
+  	tf2_ros
 )
 
 catkin_package(

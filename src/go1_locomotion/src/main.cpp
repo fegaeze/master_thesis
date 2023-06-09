@@ -5,6 +5,8 @@ Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/Imu.h>
+#include <tf/transform_listener.h>
+
 
 #include "utils.h"
 #include "kinematics.h"
@@ -204,7 +206,7 @@ int main(int argc, char **argv)
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    usleep(300000);
+
 
     ros::NodeHandle n;
     ros::Publisher lowState_pub;
@@ -224,11 +226,46 @@ int main(int argc, char **argv)
 
     motion_init();
 
-    std::vector<double> endEffectorPos = {-0.2, 0.1, 0.1};
+    ros::Duration delay(3);
+    delay.sleep();
+
+    tf::TransformListener listener;
+    tf::StampedTransform transform;
+
+    std::cout << "GOTTTT HEREEEEE 11111" << std::endl;
+
+    try
+    {
+        listener.waitForTransform("trunk", "FR_foot", ros::Time::now(), ros::Duration(3.0));
+        listener.lookupTransform("trunk", "FR_foot", ros::Time(0), transform);
+        std::cout << "GOTTTT HEREEEEE 22222" << std::endl;
+    }
+    catch (tf::TransformException& ex)
+    {
+        ROS_ERROR("%s", ex.what());
+        return 1;
+    }
+
+    tf::Vector3 position = transform.getOrigin();
+    // double x = position.getX();
+    // double y = position.getY();
+    // double z = position.getZ();
+    std::cout << "GOTTTT HEREEEEE 33333" << std::endl;
+
+    double x = 0.2;
+    double y = -0.15;
+    double z = -0.2;
+
+    std::vector<double> endEffectorPos = {x, y, z};
     Kinematics frlKinematics(endEffectorPos, "FR_Leg"); 
     std::vector<double> jointAngles = frlKinematics.ikSolver();
 
+    std::cout << "                       " << std::endl;
+    std::cout << "=======================" << std::endl;
+    std::cout << "FR foot position: " << x << " " << y << " " << z << std::endl;
     std::cout << "Desired Joint Angles: " << jointAngles[0] << ", " << jointAngles[1] << ", " << jointAngles[2] << std::endl;
+    std::cout << "=======================" << std::endl;
+    std::cout << "                       " << std::endl;
 
     double pos[12] = {0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
                       0.0, 0.67, -1.3, -0.0, 0.67, -1.3};
@@ -250,6 +287,10 @@ int main(int argc, char **argv)
         sendServoCmd();
 
         ros::Duration(1.0).sleep();
+        
+
+        // lowState_pub.publish(lowState);
+        // sendServoCmd();
 
     }
     return 0;
