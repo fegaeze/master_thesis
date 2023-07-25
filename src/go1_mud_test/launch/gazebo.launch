@@ -3,9 +3,9 @@
     <arg name="wname" default="earth"/>
 
     <arg name="debug" default="false"/>
-    <arg name="gui" default="false"/>
+    <arg name="gui" default="true"/>
     <arg name="headless" default="false"/>
-    <arg name="paused" default="false"/>
+    <arg name="paused" default="true"/>
     <arg name="use_sim_time" default="true"/>
 
     <param name="robot_description"
@@ -27,5 +27,5 @@
     </node>
 
     <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"
-        args="-urdf -z 0.6 -model go1 -param robot_description -unpause"/>
+        args="-urdf -z 0.6 -model go1 -param robot_description"/>
 </launch>

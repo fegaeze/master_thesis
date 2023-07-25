@@ -1,5 +1,5 @@
 <launch>
-    <arg name="rvizconfig" value="$(find go1_locomotion)/config/go1.rviz"/>
+    <arg name="rvizconfig" value="$(find go1_mud_test)/config/go1.rviz"/>
     <!-- Debug mode will hung up the robot, use "true" or "false" to switch it. -->
     <arg name="rname" default="go1"/>
     <arg name="user_debug" default="false"/>
@@ -7,7 +7,7 @@
 
     <param name="robot_name" value="$(arg rname)"/>
 
-    <include file="$(find go1_locomotion)/launch/gazebo.launch">
+    <include file="$(find go1_mud_test)/launch/gazebo.launch">
         <arg name="wname" value="$(arg wname)" />
         <arg name="user_debug" default="$(arg user_debug)"/>
     </include>
@@ -23,5 +23,5 @@
           RR_hip_controller RR_thigh_controller RR_calf_controller "/>
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" />
-    <node pkg="go1_locomotion" type="go1_locomotion_main" name="go1_locomotion_main" respawn="false" output="screen" />
+    <node pkg="go1_mud_test" type="go1_mud_test_main" name="go1_mud_test_main" respawn="false" output="screen" />
 </launch>
