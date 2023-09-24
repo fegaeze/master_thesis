@@ -10,13 +10,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <exec_depend>roscpp</exec_depend>
-  <build_depend>unitree_legged_msgs</build_depend>
-  <exec_depend>unitree_legged_msgs</exec_depend>
-
+  <depend>behaviortree_cpp</depend>
   <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
+  <depend>unitree_legged_msgs</depend>
 
 </package>

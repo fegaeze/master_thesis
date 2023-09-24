@@ -2,5 +2,7 @@
 
 Master Thesis Project
 
-- Build unitree_legged_sdk
+- ./install.sh
+- catkin_make
+
 

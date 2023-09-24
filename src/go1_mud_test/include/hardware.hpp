@@ -6,6 +6,7 @@
 
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/WrenchStamped.h"
+#include "behaviortree_cpp_v3/action_node.h"
 #include "unitree_legged_msgs/LowCmd.h"
 #include "unitree_legged_msgs/LowState.h"
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
