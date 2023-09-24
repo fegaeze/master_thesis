@@ -16,13 +16,14 @@
 class MudTest {
     private:
         double hipLength_, thighLength_, calfLength_;
-        tf::Vector3 calculateCoGPosition(const std::vector<tf::Vector3>& feet, int liftedLeg=-1);
+        tf::Vector3 calculateCoGPosition(const std::vector<tf::Vector3>& feet, int liftedLeg);
         std::vector<double> ikSolver(const Eigen::Matrix4d& footPose, bool isRight=true);
+        tf::TransformListener listener;
         double triangleArea(const tf::Vector3& p1, const tf::Vector3& p2, const tf::Vector3& p3);
 
     public:
         MudTest();
-        std::vector<double> getCOGJointPositions();
+        std::vector<double> getCOGJointPositions(int liftedLeg=0);
 };
 
 #endif

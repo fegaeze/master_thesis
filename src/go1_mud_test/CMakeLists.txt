@@ -1,27 +1,25 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(go1_mud_test)
 
-add_compile_options(-std=c++11)
-
 find_package(catkin REQUIRED COMPONENTS
-    genmsg
-    roscpp
-    unitree_legged_msgs
-	tf
-  	tf2_ros
+  roscpp
+  tf
+  unitree_legged_msgs
 )
 
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS unitree_legged_msgs
 )
 
+link_directories(${CMAKE_SOURCE_DIR}/unitree_legged_sdk/lib/cpp/${ARCH})
+
 include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
+  include
+  ${catkin_INCLUDE_DIRS}
 	${EIGEN3_INCLUDE_DIRS}
+	${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
 
 add_library(hardware src/hardware.cpp)

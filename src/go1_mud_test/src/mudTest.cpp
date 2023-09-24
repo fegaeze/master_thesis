@@ -1,10 +1,7 @@
-#include "hardware.hpp"
 #include "mudTest.hpp"
 
 
-MudTest::MudTest(): hipLength_{0.08}, thighLength_{0.213}, calfLength_{0.213} 
-{
-}
+MudTest::MudTest(): hipLength_{0.08}, thighLength_{0.213}, calfLength_{0.213} {}
 
 double MudTest::triangleArea(const tf::Vector3& p1, const tf::Vector3& p2, const tf::Vector3& p3)
 {
@@ -21,30 +18,32 @@ tf::Vector3 MudTest::calculateCoGPosition(const std::vector<tf::Vector3>& feet, 
     tf::Vector3 cog;
     double totalArea = 0.0;
 
-    for (int i = 0; i < feet.size(); i++)
+    int size = feet.size();
+    liftedLeg = (liftedLeg + size) % size;
+
+    for (int i = 0; i < size; i++)
     {
 
         if (liftedLeg != -1)
         {
-            liftedLeg = liftedLeg % feet.size();
-            if (i == liftedLeg || (i + 1) % feet.size() == liftedLeg || (i + 2) % feet.size() == liftedLeg)
+            if (i == liftedLeg || (i + 1) % size == liftedLeg || (i + 2) % size == liftedLeg)
             {
                 continue;
             }
         }
 
-        double area = MudTest::triangleArea(feet[i], feet[i + 1], feet[i + 2]);
+        double area = MudTest::triangleArea(feet[i], feet[(i + 1) % size], feet[(i + 2) % size]);
         totalArea += area;
 
         tf::Vector3 centroid(0.0, 0.0, 0.0);
 
-        centroid.setX((feet[i].x() + feet[i + 1].x() + feet[i + 2].x()) / 3.0);
-        centroid.setY((feet[i].y() + feet[i + 1].y() + feet[i + 2].y()) / 3.0);
-        centroid.setZ((feet[i].z() + feet[i + 1].z() + feet[i + 2].z()) / 3.0);
+        centroid.setX((feet[i].x() + feet[(i + 1) % size].x() + feet[(i + 2) % size].x()) / 3.0);
+        centroid.setY((feet[i].y() + feet[(i + 1) % size].y() + feet[(i + 2) % size].y()) / 3.0);
+        centroid.setZ((feet[i].z() + feet[(i + 1) % size].z() + feet[(i + 2) % size].z()) / 3.0);
 
-        cog.setX(centroid.x() * area);
-        cog.setY(centroid.y() * area);
-        cog.setZ(centroid.z() * area);
+        cog.setX(cog.x() + centroid.x() * area);
+        cog.setY(cog.y() + centroid.y() * area);
+        cog.setZ(cog.z() + centroid.z() * area);
     }
 
     if (totalArea > 0.0)
@@ -114,13 +113,15 @@ std::vector<double> MudTest::ikSolver(const Eigen::Matrix4d& footPose, bool isRi
     return jointAngles;
 }
 
-std::vector<double> MudTest::getCOGJointPositions()
+std::vector<double> MudTest::getCOGJointPositions(int liftedLeg)
 {
-    tf::TransformListener listener;
+    ROS_INFO("Start get COG");
 
-    std::vector<std::string> hipNames = {"FR_hip", "FL_hip", "RR_hip", "RL_hip"};
-    std::vector<std::string> feetNames = {"FR_foot", "FL_foot", "RR_foot", "RL_foot"};
+    ROS_INFO("declared listener");
+    std::vector<std::string> hipNames = {"/FR_hip", "/FL_hip", "/RR_hip", "/RL_hip"};
+    std::vector<std::string> feetNames = {"/FR_foot", "/FL_foot", "/RR_foot", "/RL_foot"};
 
+    ROS_INFO("initialized vec strings");
     // Get positions of the robot's feet at standing pose (wrt trunk).
     std::vector<tf::Vector3> initialfeetPositions;
     for (int i = 0; i < feetNames.size(); i++)
@@ -128,8 +129,8 @@ std::vector<double> MudTest::getCOGJointPositions()
         tf::StampedTransform transform;
         try
         {
-            listener.waitForTransform("trunk", feetNames[i], ros::Time::now(), ros::Duration(3.0));
-            listener.lookupTransform("trunk", feetNames[i], ros::Time(0), transform);
+            // listener.waitForTransform("trunk", feetNames[i], ros::Time::now(), ros::Duration(3.0));
+            listener.lookupTransform("/trunk", feetNames[i], ros::Time(0), transform);
             initialfeetPositions.push_back(transform.getOrigin());
         }
         catch (tf::TransformException ex)
@@ -138,9 +139,10 @@ std::vector<double> MudTest::getCOGJointPositions()
         }
     }
 
+    ROS_INFO("after loop");
     // Using the robot's initial feet position, get the robot's best point for stability
-    int liftedLeg = 0;
     tf::Vector3 cog = MudTest::calculateCoGPosition(initialfeetPositions, liftedLeg);
+    std::cout << "COG Position: " << cog.x() << " " << cog.y() << " " << cog.z() << " " << std::endl;
     
     // Having gotten what CoG is, create a transformation matrix of each feet to the trunk. 
     // With this trunk being the new calculated CoG position. We only move by x & y
