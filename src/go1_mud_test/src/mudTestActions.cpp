@@ -1,4 +1,83 @@
-#include "mudTest.hpp"
+#include "mudTestActions.hpp"
+
+
+/** INITIALIZATION ACTION */
+BT::NodeStatus Go1Initialized::robotStateReceived() {
+    unitree_legged_msgs::LowState lowState = controller_.getLowState();
+
+    double FR_Calf = lowState.motorState[2].q;
+    double FL_Calf = lowState.motorState[5].q;
+    double RR_Calf = lowState.motorState[8].q;
+    double RL_Calf = lowState.motorState[11].q;
+
+    if(FR_Calf != 0.0 && FL_Calf != 0.0 && RR_Calf != 0.0 && RL_Calf != 0.0) {
+        return BT::NodeStatus::SUCCESS;
+    }
+    
+    ROS_INFO("GO1_INITIAL_STATE");
+    ROS_INFO("Conditions: FR_Calf=%f, FL_Calf=%f, RR_Calf=%f, RL_Calf=%f", FR_Calf, FL_Calf, RR_Calf, RL_Calf);
+    return BT::NodeStatus::FAILURE;
+}
+
+BT::NodeStatus Go1Initialized::robotInitialized() {
+    controller_.setRobotParams();
+    return BT::NodeStatus::SUCCESS;
+}
+
+void Go1Initialized::registerNodes(BT::BehaviorTreeFactory &factory)
+{
+  factory.registerSimpleCondition(
+      "RobotStateReceived", std::bind(&Go1Initialized::robotStateReceived, this));
+
+  factory.registerSimpleAction(
+      "RobotInitialized", std::bind(&Go1Initialized::robotInitialized, this));
+}
+
+
+/** LIE DOWN ACTION */
+BT::NodeStatus Go1LieDown::onStart() {
+    ROS_INFO("GO1_LIE_DOWN_STATE_ACTION");
+    initialState_ = controller_.getLowState();
+    return BT::NodeStatus::RUNNING;
+}
+
+BT::NodeStatus Go1LieDown::onRunning() {
+    int duration = controller_.MOVEMENT_DURATION_MS;
+    controller_.interpolateJoints(initialState_, LIE_DOWN_JOINT_POSITIONS, duration, durationCounter_);
+    durationCounter_ += 1;
+
+    if(durationCounter_ >= duration) {
+        return BT::NodeStatus::SUCCESS;
+    }
+    return BT::NodeStatus::RUNNING;
+}
+
+void Go1LieDown::onHalted() {
+    durationCounter_ = 0;
+}
+
+
+/** STAND ACTION */
+BT::NodeStatus Go1Stand::onStart() {
+    ROS_INFO("GO1_STAND_STATE_ACTION");
+    initialState_ = controller_.getLowState();
+    return BT::NodeStatus::RUNNING;
+}
+
+BT::NodeStatus Go1Stand::onRunning() {
+    int duration = controller_.MOVEMENT_DURATION_MS;
+    controller_.interpolateJoints(initialState_, STAND_JOINT_POSITIONS, duration, durationCounter_);
+    durationCounter_ += 1;
+
+    if(durationCounter_ >= duration) {
+        return BT::NodeStatus::SUCCESS;
+    }
+    return BT::NodeStatus::RUNNING;
+}
+
+void Go1Stand::onHalted() {
+    durationCounter_ = 0;
+}
 
 
 MudTest::MudTest(): hipLength_{0.08}, thighLength_{0.213}, calfLength_{0.213} {}

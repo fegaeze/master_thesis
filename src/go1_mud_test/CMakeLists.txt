@@ -22,11 +22,14 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
 
-add_library(hardware src/hardware.cpp)
-target_link_libraries(hardware ${catkin_LIBRARIES} ${EXTRA_LIBS})
+add_library(controller src/controller.cpp)
+target_link_libraries(controller ${catkin_LIBRARIES} ${EXTRA_LIBS})
 
-add_library(mudTest src/mudTest.cpp)
-target_link_libraries(mudTest ${catkin_LIBRARIES} ${EXTRA_LIBS})
+add_library(mudTestActions src/mudTestActions.cpp)
+target_link_libraries(mudTestActions ${catkin_LIBRARIES} ${EXTRA_LIBS})
+
+add_library(mudTestConditions src/mudTestConditions.cpp)
+target_link_libraries(mudTestConditions ${catkin_LIBRARIES} ${EXTRA_LIBS})
 
 add_executable(go1_mud_test_main src/mudTestNode.cpp)
-target_link_libraries(go1_mud_test_main ${catkin_LIBRARIES} ${EXTRA_LIBS} hardware mudTest)
+target_link_libraries(go1_mud_test_main ${catkin_LIBRARIES} ${EXTRA_LIBS} controller mudTestActions mudTestConditions)

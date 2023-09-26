@@ -1,27 +1,24 @@
 <launch>
-    <arg name="rvizconfig" value="$(find go1_mud_test)/config/go1.rviz"/>
-    <!-- Debug mode will hung up the robot, use "true" or "false" to switch it. -->
     <arg name="rname" default="go1"/>
-    <arg name="user_debug" default="false"/>
-    <arg name="wname" default="earth"/>
+    <arg name="rvizconfig" value="$(find go1_mud_test)/config/go1.rviz"/>
 
     <param name="robot_name" value="$(arg rname)"/>
-
-    <include file="$(find go1_mud_test)/launch/gazebo.launch">
-        <arg name="wname" value="$(arg wname)" />
-        <arg name="user_debug" default="$(arg user_debug)"/>
-    </include>
-
-    <!-- Load joint controller configurations from YAML file to parameter server -->
+    <param name="behavior_tree_path" type="string" value="$(find go1_mud_test)/behavior_trees/mud_test.xml" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro'" />
     <rosparam file="$(find go1_description)/config/robot_control.yaml" command="load"/>
 
-    <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="false"
-          output="screen" ns="/go1_gazebo" args="joint_state_controller
-          FL_hip_controller FL_thigh_controller FL_calf_controller
-          FR_hip_controller FR_thigh_controller FR_calf_controller
-          RL_hip_controller RL_thigh_controller RL_calf_controller
-          RR_hip_controller RR_thigh_controller RR_calf_controller "/>
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" /> -->
 
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" />
+    <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="false"
+        output="screen" ns="/go1_gazebo" args="joint_state_controller
+        FL_hip_controller FL_thigh_controller FL_calf_controller
+        FR_hip_controller FR_thigh_controller FR_calf_controller
+        RL_hip_controller RL_thigh_controller RL_calf_controller
+        RR_hip_controller RR_thigh_controller RR_calf_controller" />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" respawn="false" output="screen">
+        <remap from="/joint_states" to="/go1_gazebo/joint_states" />
+    </node>
+
     <node pkg="go1_mud_test" type="go1_mud_test_main" name="go1_mud_test_main" respawn="false" output="screen" />
 </launch>

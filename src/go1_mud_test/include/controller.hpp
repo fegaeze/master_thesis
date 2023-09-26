@@ -1,51 +1,56 @@
-#ifndef __HARDWARE_H__
-#define __HARDWARE_H__
+#pragma once
 
 #include <iostream>
 #include <ros/ros.h>
 
-#include "sensor_msgs/Imu.h"
 #include "geometry_msgs/WrenchStamped.h"
-#include "behaviortree_cpp_v3/action_node.h"
+#include "sensor_msgs/Imu.h"
+#include "sensor_msgs/JointState.h"
 #include "unitree_legged_msgs/LowCmd.h"
 #include "unitree_legged_msgs/LowState.h"
+
+#include "behaviortree_cpp/action_node.h"
+#include "behaviortree_cpp/bt_factory.h"
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
+
 
 class HardwareController {
 
     public:
-        HardwareController(ros::NodeHandle nh);
-
+        static HardwareController& getInstance();
+        
         // Constants
         static constexpr int LOOP_RATE_HZ = 100;
-        static constexpr double MOVEMENT_DURATION_MS = 5.0 * double(LOOP_RATE_HZ); // 5 seconds
-        static constexpr double WAIT_DURATION_MS = 10.0 * double(LOOP_RATE_HZ);    // 10 seconds
+        static constexpr int MOVEMENT_DURATION_MS = 5 * LOOP_RATE_HZ; // 5 seconds
+        static constexpr int WAIT_DURATION_MS = 10 * LOOP_RATE_HZ;    // 10 seconds
 
         // Methods
+        unitree_legged_msgs::LowState getLowState();
+        void initialize(ros::NodeHandle& nh);
+        void interpolateJoints(unitree_legged_msgs::LowState initialState, 
+            const double *targetPos, int duration, int durationCounter
+        );
         void publishLowCmd();
-        void stand(double percentCounter);
+        void setRobotParams();
 
     private:
-    
-        // Constants
-        const double STAND_JOINT_POSITIONS[12] = {
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3
-        };
+
+        HardwareController() : initialized_(false) {};
+        HardwareController(const HardwareController&) = delete;
+        HardwareController& operator=(const HardwareController&) = delete;
 
         // Private members
+        bool initialized_;
         ros::NodeHandle nh_;
+        sensor_msgs::JointState jointState_;
+        ros::Publisher jointState_pub_;
         ros::Publisher lowCmd_pub_;
         ros::Subscriber lowState_sub_;
         unitree_legged_msgs::LowCmd lowCmd_;
         unitree_legged_msgs::LowState lowState_;
         
         // Private methods
-        void initializeRobotParams();
-        void interpolateJoints(const double *targetPos, double duration, double percentCounter);
-        
         void setPublishers();
-        void setRobotGains(double kp, double kd);
         void setSubscriptions();
 
         void imuCallback(const sensor_msgs::Imu &msg);
@@ -67,5 +72,3 @@ class HardwareController {
         void RRfootCallback(const geometry_msgs::WrenchStamped &msg);
         void RLfootCallback(const geometry_msgs::WrenchStamped &msg);
 };
-
-#endif

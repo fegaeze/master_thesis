@@ -8,10 +8,6 @@
     <arg name="paused" default="true"/>
     <arg name="use_sim_time" default="true"/>
 
-    <param name="robot_description"
-        command="$(find xacro)/xacro --inorder '$(find go1_description)/xacro/robot.xacro' 
-        DEBUG:=$(arg user_debug)"/>
-    
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="world_name" value="$(find unitree_gazebo)/worlds/$(arg wname).world"/>
         <arg name="debug" value="$(arg debug)"/>
@@ -20,11 +16,6 @@
         <arg name="use_sim_time" value="$(arg use_sim_time)"/>
         <arg name="headless" value="$(arg headless)"/>
     </include>
-
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
-          respawn="false" output="screen">
-        <remap from="/joint_states" to="/go1_gazebo/joint_states"/>
-    </node>
 
     <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"
         args="-urdf -z 0.6 -model go1 -param robot_description"/>
