@@ -7,14 +7,14 @@
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "go1_mud_test_node");
-    ros::NodeHandle nm;
+    ros::NodeHandle nh;
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
     HardwareController& controller = HardwareController::getInstance();
     
-    controller.initialize(nm);
+    controller.initialize(nh);
     ros::Rate loop_rate(controller.LOOP_RATE_HZ);
 
     BT::BehaviorTreeFactory factory;

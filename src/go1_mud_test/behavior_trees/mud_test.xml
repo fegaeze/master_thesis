@@ -3,19 +3,22 @@
         <ReactiveSequence name="root_sequence">
             <Sequence>
                 <RobotStateReceived name="robot_state_received?"/>
-                <RobotInitialized name="robot_initialized" />
+                <Fallback>
+                    <RobotParamInitialized name="robot_param_initialized?"/>
+                    <RobotInitialization name="robot_initialization_action" />
+                </Fallback>
             </Sequence>
 
             <ReactiveFallback>
                 <ReactiveSequence>
-                    <StandKeyPressed name="go1_stand_key_pressed?"/>
+                    <StandKeyPressed name="go1_stand_key_pressed?" />
                     <Go1Stand name="go1_stand_action"/>
                 </ReactiveSequence>
 
-                <ReactiveSequence>
+                <!-- <ReactiveSequence>
                     <LieDownKeyPressed name="go1_lie_down_pressed?"/>
                     <Go1LieDown name="go1_lie_down_action"/>
-                </ReactiveSequence>
+                </ReactiveSequence> -->
             </ReactiveFallback>
             
         </ReactiveSequence>

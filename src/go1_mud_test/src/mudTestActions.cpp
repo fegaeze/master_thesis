@@ -14,23 +14,34 @@ BT::NodeStatus Go1Initialized::robotStateReceived() {
         return BT::NodeStatus::SUCCESS;
     }
     
-    ROS_INFO("GO1_INITIAL_STATE");
     ROS_INFO("Conditions: FR_Calf=%f, FL_Calf=%f, RR_Calf=%f, RL_Calf=%f", FR_Calf, FL_Calf, RR_Calf, RL_Calf);
     return BT::NodeStatus::FAILURE;
 }
 
-BT::NodeStatus Go1Initialized::robotInitialized() {
+BT::NodeStatus Go1Initialized::robotParamInitialized() {
+    if(paramInitialized_) {
+        return BT::NodeStatus::SUCCESS;
+    }
+    return BT::NodeStatus::FAILURE;
+}
+
+BT::NodeStatus Go1Initialized::robotInitialization() {
+    ROS_INFO("GO1_INITIAL_STATE");
     controller_.setRobotParams();
+    paramInitialized_ = true;
     return BT::NodeStatus::SUCCESS;
 }
 
 void Go1Initialized::registerNodes(BT::BehaviorTreeFactory &factory)
 {
-  factory.registerSimpleCondition(
-      "RobotStateReceived", std::bind(&Go1Initialized::robotStateReceived, this));
+    factory.registerSimpleCondition(
+        "RobotParamInitialized", std::bind(&Go1Initialized::robotParamInitialized, this));
 
-  factory.registerSimpleAction(
-      "RobotInitialized", std::bind(&Go1Initialized::robotInitialized, this));
+    factory.registerSimpleCondition(
+        "RobotStateReceived", std::bind(&Go1Initialized::robotStateReceived, this));
+
+    factory.registerSimpleAction(
+        "RobotInitialization", std::bind(&Go1Initialized::robotInitialization, this));
 }
 
 
@@ -70,6 +81,7 @@ BT::NodeStatus Go1Stand::onRunning() {
     durationCounter_ += 1;
 
     if(durationCounter_ >= duration) {
+        controller_.setKeyPressed(false);
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::RUNNING;

@@ -26,10 +26,11 @@ class Go1Initialized  {
         void registerNodes(BT::BehaviorTreeFactory& factory);
 
     private:
+        bool paramInitialized_ = false;
         HardwareController& controller_;
-
+        BT::NodeStatus robotInitialization();
+        BT::NodeStatus robotParamInitialized();
         BT::NodeStatus robotStateReceived();
-        BT::NodeStatus robotInitialized();
 };
 
 class Go1Stand : public BT::StatefulActionNode {

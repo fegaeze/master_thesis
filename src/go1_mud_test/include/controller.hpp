@@ -33,6 +33,9 @@ class HardwareController {
         void publishLowCmd();
         void setRobotParams();
 
+        bool getKeyPressed();
+        void setKeyPressed(bool pressed);
+
     private:
 
         HardwareController() : initialized_(false) {};
@@ -41,11 +44,14 @@ class HardwareController {
 
         // Private members
         bool initialized_;
+        bool keyPressed_ = true;
+        
         ros::NodeHandle nh_;
-        sensor_msgs::JointState jointState_;
         ros::Publisher jointState_pub_;
         ros::Publisher lowCmd_pub_;
         ros::Subscriber lowState_sub_;
+
+        sensor_msgs::JointState jointState_;
         unitree_legged_msgs::LowCmd lowCmd_;
         unitree_legged_msgs::LowState lowState_;
         

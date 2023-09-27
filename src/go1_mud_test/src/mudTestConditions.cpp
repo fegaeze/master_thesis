@@ -13,8 +13,14 @@ namespace Go1LieDownCond {
 namespace Go1StandCond {
 
     BT::NodeStatus standKeyPressed() {
+        HardwareController& controller = HardwareController::getInstance();
         ROS_INFO("GO1_STAND_KEY_PRESSED");
-        return BT::NodeStatus::SUCCESS;
+
+        bool pressed = controller.getKeyPressed();
+        if(pressed) {
+            return BT::NodeStatus::SUCCESS;
+        }
+        return BT::NodeStatus::FAILURE;
     }
 
 }
