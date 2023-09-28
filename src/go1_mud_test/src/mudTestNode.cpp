@@ -9,12 +9,15 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "go1_mud_test_node");
     ros::NodeHandle nh;
 
+    std::string rname;
+    ros::param::get("/robot_name", rname);
+
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
     HardwareController& controller = HardwareController::getInstance();
     
-    controller.initialize(nh);
+    controller.initialize(nh, rname);
     ros::Rate loop_rate(controller.LOOP_RATE_HZ);
 
     BT::BehaviorTreeFactory factory;

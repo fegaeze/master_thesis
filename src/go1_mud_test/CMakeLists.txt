@@ -3,8 +3,10 @@ project(go1_mud_test)
 
 find_package(catkin REQUIRED COMPONENTS
   behaviortree_cpp
+  gazebo_ros
   roscpp
   tf
+  unitree_gazebo
   unitree_legged_msgs
 )
 

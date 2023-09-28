@@ -14,7 +14,6 @@ BT::NodeStatus Go1Initialized::robotStateReceived() {
         return BT::NodeStatus::SUCCESS;
     }
     
-    ROS_INFO("Conditions: FR_Calf=%f, FL_Calf=%f, RR_Calf=%f, RL_Calf=%f", FR_Calf, FL_Calf, RR_Calf, RL_Calf);
     return BT::NodeStatus::FAILURE;
 }
 

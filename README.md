@@ -6,5 +6,6 @@ Master Thesis Project
 - cd master_thesis
 - ./install.sh
 - catkin_make
+- roslaunch go1_mud_test mud_test.launch simulation:=true (default = false)
 
 

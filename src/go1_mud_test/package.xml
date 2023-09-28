@@ -11,10 +11,12 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>behaviortree_cpp</depend>
+  <depend>gazebo_ros</depend>
   <depend>geometry_msgs</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
+  <depend>unitree_gazebo</depend>
   <depend>unitree_legged_msgs</depend>
 
 </package>

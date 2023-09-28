@@ -51,7 +51,7 @@ class Go1Stand : public BT::StatefulActionNode {
 
     private:
         int durationCounter_ = 0;
-        const double STAND_JOINT_POSITIONS[12] = {
+        const double STAND_JOINT_POSITIONS[HardwareController::NUM_OF_JOINTS] = {
             0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
             0.0, 0.67, -1.3, -0.0, 0.67, -1.3
         };
@@ -78,7 +78,7 @@ class Go1LieDown : public BT::StatefulActionNode {
 
     private:
         int durationCounter_ = 0;
-        const double LIE_DOWN_JOINT_POSITIONS[12] = {
+        const double LIE_DOWN_JOINT_POSITIONS[HardwareController::NUM_OF_JOINTS] = {
             0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
             0.0, 0.67, -1.3, -0.0, 0.67, -1.3
         };

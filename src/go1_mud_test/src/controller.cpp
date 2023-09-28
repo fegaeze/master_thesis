@@ -15,10 +15,18 @@ HardwareController& HardwareController::getInstance() {
   return instance;
 }
 
-void HardwareController::initialize(ros::NodeHandle& nh) {
+void HardwareController::initialize(ros::NodeHandle& nh, std::string robot_name) {
   if (!initialized_) {
     nh_ = nh;
+    robot_name_ = robot_name;
     initialized_ = true;
+
+    jointState_.name = {
+      "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
+      "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
+      "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint", 
+      "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"
+    };
 
     setPublishers();
     setSubscriptions();
@@ -47,7 +55,7 @@ void HardwareController::initialize(ros::NodeHandle& nh) {
       lowCmd_.motorCmd[i*3+2].tau = 0;
     }
 
-    for(int i=0; i<12; i++){
+    for(int i=0; i<NUM_OF_JOINTS; i++){
       lowCmd_.motorCmd[i].q = lowState_.motorState[i].q;
     }
   }
@@ -60,12 +68,24 @@ unitree_legged_msgs::LowState HardwareController::getLowState() {
 }
 
 void HardwareController::setPublishers() {
-  jointState_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
-  lowCmd_pub_ = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
+  jointState_pub_ = nh_.advertise<sensor_msgs::JointState>("/" + robot_name_ + "/joint_states", 1);
+  realLowCmd_pub_ = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
+  simLowCmd_pub_[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_hip_controller/command", 1);
+  simLowCmd_pub_[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_thigh_controller/command", 1);
+  simLowCmd_pub_[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_calf_controller/command", 1);
+  simLowCmd_pub_[3] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_hip_controller/command", 1);
+  simLowCmd_pub_[4] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_thigh_controller/command", 1);
+  simLowCmd_pub_[5] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_calf_controller/command", 1);
+  simLowCmd_pub_[6] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_hip_controller/command", 1);
+  simLowCmd_pub_[7] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_thigh_controller/command", 1);
+  simLowCmd_pub_[8] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_calf_controller/command", 1);
+  simLowCmd_pub_[9] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_hip_controller/command", 1);
+  simLowCmd_pub_[10] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_thigh_controller/command", 1);
+  simLowCmd_pub_[11] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_calf_controller/command", 1);
 }
 
 void HardwareController::setRobotParams() {
-  for(int i=0; i<12; i++){
+  for(int i=0; i<NUM_OF_JOINTS; i++){
     lowCmd_.motorCmd[i].q = lowState_.motorState[i].q;
   }
 
@@ -82,7 +102,24 @@ void HardwareController::setRobotParams() {
 }
 
 void HardwareController::setSubscriptions() {
-  lowState_sub_ = nh_.subscribe("/low_state", 1, &HardwareController::lowStateCallback, this);
+  imu_sub_ = nh_.subscribe("/trunk_imu", 1, &HardwareController::imuCallback, this);
+  footForce_sub_[0] = nh_.subscribe("/visual/FR_foot_contact/the_force", 1, &HardwareController::FRfootCallback, this);
+  footForce_sub_[1] = nh_.subscribe("/visual/FL_foot_contact/the_force", 1, &HardwareController::FLfootCallback, this);
+  footForce_sub_[2] = nh_.subscribe("/visual/RR_foot_contact/the_force", 1, &HardwareController::RRfootCallback, this);
+  footForce_sub_[3] = nh_.subscribe("/visual/RL_foot_contact/the_force", 1, &HardwareController::RLfootCallback, this);
+  realLowState_sub_ = nh_.subscribe("/low_state", 1, &HardwareController::lowStateCallback, this);
+  simLowState_sub_[0] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_hip_controller/state", 1, &HardwareController::FRhipCallback, this);
+  simLowState_sub_[1] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_thigh_controller/state", 1, &HardwareController::FRthighCallback, this);
+  simLowState_sub_[2] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_calf_controller/state", 1, &HardwareController::FRcalfCallback, this);
+  simLowState_sub_[3] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_hip_controller/state", 1, &HardwareController::FLhipCallback, this);
+  simLowState_sub_[4] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_thigh_controller/state", 1, &HardwareController::FLthighCallback, this);
+  simLowState_sub_[5] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_calf_controller/state", 1, &HardwareController::FLcalfCallback, this);
+  simLowState_sub_[6] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_hip_controller/state", 1, &HardwareController::RRhipCallback, this);
+  simLowState_sub_[7] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_thigh_controller/state", 1, &HardwareController::RRthighCallback, this);
+  simLowState_sub_[8] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_calf_controller/state", 1, &HardwareController::RRcalfCallback, this);
+  simLowState_sub_[9] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_hip_controller/state", 1, &HardwareController::RLhipCallback, this);
+  simLowState_sub_[10] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_thigh_controller/state", 1, &HardwareController::RLthighCallback, this);
+  simLowState_sub_[11] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_calf_controller/state", 1, &HardwareController::RLcalfCallback, this);
 }
 
 
@@ -97,20 +134,23 @@ void HardwareController::setKeyPressed(bool pressed) {
 /** ACTION METHODS */
 
 void HardwareController::interpolateJoints(
-    unitree_legged_msgs::LowState initialState, 
-    const double *targetPos, int duration, int durationCounter
-  ) {
-  double initialPos[12];
+  unitree_legged_msgs::LowState initialState, 
+  const double *targetPos, int duration, int durationCounter
+) {
+  double initialPos[NUM_OF_JOINTS];
   double percent = static_cast<double>(durationCounter) / static_cast<double>(duration);
 
-  for (int j = 0; j < 12; j++) {
+  for (int j = 0; j < NUM_OF_JOINTS; j++) {
     initialPos[j] = initialState.motorState[j].q;
     lowCmd_.motorCmd[j].q = (initialPos[j] * (1 - percent)) + (targetPos[j] * percent);
   }
 }
 
 void HardwareController::publishLowCmd() {
-  lowCmd_pub_.publish(lowCmd_);
+  realLowCmd_pub_.publish(lowCmd_);
+  for (int m = 0; m < NUM_OF_JOINTS; m++) {
+    simLowCmd_pub_[m].publish(lowCmd_.motorCmd[m]);
+  }
 }
 
 
@@ -144,14 +184,13 @@ void HardwareController::lowStateCallback(
   RLthighCallback(msg->motorState[UNITREE_LEGGED_SDK::RL_1]);
   RLcalfCallback(msg->motorState[UNITREE_LEGGED_SDK::RL_2]);
 
-  // jointState_.header.stamp = ros::Time::now();
-  // for (int i(0); i < 12; ++i) {
-  //   jointState_.position[i] = msg->motorState[i].q;
-  //   jointState_.velocity[i] = msg->motorState[i].dq;
-  //   jointState_.effort[i] = msg->motorState[i].tauEst;
-  // }
-
-  // jointState_pub_.publish(jointState_);
+  jointState_.header.stamp = ros::Time::now();
+  for (int i(0); i < NUM_OF_JOINTS; ++i) {
+    jointState_.position.push_back(lowState_.motorState[i].q);
+    jointState_.velocity.push_back(lowState_.motorState[i].dq);
+    jointState_.effort.push_back(lowState_.motorState[i].tauEst);
+  }
+  jointState_pub_.publish(jointState_);
 }
 
 void HardwareController::imuCallback(const sensor_msgs::Imu &msg)
