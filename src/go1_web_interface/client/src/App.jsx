@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ROS } from "./hooks/useROS";
-import ConnectedRoute from "./utils/ConnectedRoutes";
-import ControlPage from "./layout/ControlPage";
-import LoginPage from "./layout/LoginPage";
+import ConnectedRoute from "./components/ConnectedRoutes";
+import ControlPage from "./pages/ControlPage";
+import LoginPage from "./pages/LoginPage";
 import Alert from "./components/Alert";
 
 
