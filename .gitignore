@@ -12,4 +12,7 @@ install/
 
 # Others
 **/.DS_Store
-**/build/
+node_modules/
+coverage/
+dist/
+.env

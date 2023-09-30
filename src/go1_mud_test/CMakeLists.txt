@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_manager
   joint_state_controller
   gazebo_ros
+  go1_web_interface
   robot_state_publisher
   roscpp
   tf

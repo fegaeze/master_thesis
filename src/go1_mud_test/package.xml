@@ -16,13 +16,12 @@
   <depend>joint_state_controller</depend>
   <depend>gazebo_ros</depend>
   <depend>geometry_msgs</depend>
+  <depend>go1_web_interface</depend>
   <depend>libzmq3-dev</depend>
   <depend>robot_state_publisher</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
-  
-  <build_depend>unitree_legged_msgs</build_depend>
-  <exec_depend>unitree_legged_msgs</exec_depend>
+  <depend>unitree_legged_msgs</depend>
 
 </package>
