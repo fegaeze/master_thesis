@@ -14,6 +14,8 @@ If you want to work on the web interface, follow the instructions below:
 - if you dont have nodejs installed:
     - install latest version (from nodesource, apt-get only installs up to v10. minimum of 12 needed)
 
+Shout out to react-ros (flynneva)
+
 
 
 
