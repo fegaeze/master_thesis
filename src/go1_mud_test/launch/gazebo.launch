@@ -1,12 +1,10 @@
 <launch>
-    <arg name="gui" />
     <arg name="paused" />
     <arg name="wname" />
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="gui" value="$(arg gui)"/>
         <arg name="paused" value="$(arg paused)"/>
-        <arg name="world_name" value="$(find unitree_gazebo)/worlds/$(arg wname).world"/>
+        <arg name="world_name" value="$(find go1_mud_test)/worlds/$(arg wname).world"/>
     </include>
 
     <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"

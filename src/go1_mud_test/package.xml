@@ -11,12 +11,18 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>behaviortree_cpp</depend>
+  <depend>boost</depend>
+  <depend>controller_manager</depend>
+  <depend>joint_state_controller</depend>
   <depend>gazebo_ros</depend>
   <depend>geometry_msgs</depend>
+  <depend>libzmq3-dev</depend>
+  <depend>robot_state_publisher</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
-  <depend>unitree_gazebo</depend>
-  <depend>unitree_legged_msgs</depend>
+  
+  <build_depend>unitree_legged_msgs</build_depend>
+  <exec_depend>unitree_legged_msgs</exec_depend>
 
 </package>

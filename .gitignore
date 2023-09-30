@@ -12,3 +12,4 @@ install/
 
 # Others
 **/.DS_Store
+**/build/

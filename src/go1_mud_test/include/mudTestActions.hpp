@@ -3,8 +3,6 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <cmath>
-#include <iostream>
-#include <ros/ros.h>
 #include <stdexcept>
 #include <string>
 #include <tf/transform_listener.h>
@@ -13,8 +11,6 @@
 #include "controller.hpp"
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
-#include "unitree_legged_msgs/LowCmd.h"
-#include "unitree_legged_msgs/LowState.h"
 
 namespace chr = std::chrono;
 
