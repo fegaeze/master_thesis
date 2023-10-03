@@ -1,12 +1,21 @@
 <launch>
-    <arg name="paused" />
+    <arg name="gui" />
+    <arg name="headless" />
+    <arg name="debug" />
+    <arg name="paused"/>
+    <arg name="rname" />
+    <arg name="use_sim_time" />
     <arg name="wname" />
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="debug" value="$(arg debug)"/>
         <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
         <arg name="world_name" value="$(find go1_mud_test)/worlds/$(arg wname).world"/>
     </include>
 
     <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"
-        args="-urdf -z 0.6 -model go1 -param robot_description"/>
+          args="-urdf -z 0.6 -model $(arg rname)_gazebo -param robot_description"/>
 </launch>

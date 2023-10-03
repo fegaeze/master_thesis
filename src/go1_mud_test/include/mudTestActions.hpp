@@ -8,81 +8,63 @@
 #include <tf/transform_listener.h>
 #include <vector>
 
-#include "controller.hpp"
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
 
-namespace chr = std::chrono;
+#include "baseAction.hpp"
 
+namespace chr = std::chrono;
 
 class Go1Initialized  {
     public:
-        Go1Initialized() : controller_(HardwareController::getInstance()) {}
+        Go1Initialized() : 
+            rosManager_(ROSInterfaceManager::getInstance()) {}
 
         void registerNodes(BT::BehaviorTreeFactory& factory);
 
     private:
         bool paramInitialized_ = false;
-        HardwareController& controller_;
+        ROSInterfaceManager& rosManager_;
         BT::NodeStatus robotInitialization();
         BT::NodeStatus robotParamInitialized();
         BT::NodeStatus robotStateReceived();
 };
 
-class Go1Stand : public BT::StatefulActionNode {
-    public:
-        Go1Stand(const std::string& name, const BT::NodeConfig& config) 
-            : StatefulActionNode(name, config),
-              controller_(HardwareController::getInstance()) {}
+class Go1Stand : public Go1Base {
+public:
+    Go1Stand(const std::string& name, const BT::NodeConfig& config) 
+        : Go1Base(name, config) {}
 
-        static BT::PortsList providedPorts() {
-            return {};
-        }
+    BT::NodeStatus onStart() override;
 
-        BT::NodeStatus onStart() override;
+    BT::NodeStatus onRunning() override;
 
-        BT::NodeStatus onRunning() override;
+    void onHalted() override;
 
-        void onHalted() override;
-
-    private:
-        int durationCounter_ = 0;
-        const double STAND_JOINT_POSITIONS[HardwareController::NUM_OF_JOINTS] = {
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3
-        };
-
-        HardwareController& controller_;
-        unitree_legged_msgs::LowState initialState_;
+private:
+    const double STAND_JOINT_POSITIONS[ROSInterfaceManager::NUM_OF_JOINTS] = {
+        0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
+        0.0, 0.67, -1.3, -0.0, 0.67, -1.3
+    };
 };
 
-class Go1LieDown : public BT::StatefulActionNode {
-    public:
-        Go1LieDown(const std::string& name, const BT::NodeConfig& config) 
-            : StatefulActionNode(name, config),
-              controller_(HardwareController::getInstance()) {}
+class Go1LieDown : public Go1Base {
+public:
+    Go1LieDown(const std::string& name, const BT::NodeConfig& config) 
+        : Go1Base(name, config) {}
 
-        static BT::PortsList providedPorts() {
-            return {};
-        }
+    BT::NodeStatus onStart() override;
 
-        BT::NodeStatus onStart() override;
+    BT::NodeStatus onRunning() override;
 
-        BT::NodeStatus onRunning() override;
+    void onHalted() override;
 
-        void onHalted() override;
-
-    private:
-        int durationCounter_ = 0;
-        const double LIE_DOWN_JOINT_POSITIONS[HardwareController::NUM_OF_JOINTS] = {
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3, -0.0, 0.67, -1.3
-        };
-
-        HardwareController& controller_;
-        unitree_legged_msgs::LowState initialState_;
+private:
+    const double LIE_DOWN_JOINT_POSITIONS[ROSInterfaceManager::NUM_OF_JOINTS] = {
+        -0.5, 1.15, -2.7, -0.5, 1.15, -2.7,
+        -0.5, 1.15, -2.7, -0.5, 1.15, -2.7
+    };
 };
-
 
 class MudTest {
     private:

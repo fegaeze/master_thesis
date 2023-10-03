@@ -1,0 +1,5 @@
+string action  # Action to perform (STAND, LIE_DOWN, RAISE_FR_FOOT, RAISE_FL_FOOT, RAISE_RR_FOOT, RAISE_RL_FOOT)
+
+---
+bool success
+string message

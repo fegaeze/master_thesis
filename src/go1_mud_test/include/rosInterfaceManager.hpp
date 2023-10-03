@@ -14,43 +14,40 @@
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
 
 
-class HardwareController {
+class ROSInterfaceManager {
 
     public:
-        static HardwareController& getInstance();
+        static ROSInterfaceManager& getInstance();
         
         // Constants
-        static constexpr int LOOP_RATE_HZ = 100;
+        static constexpr int LOOP_RATE_HZ = 500;
         static constexpr int MOVEMENT_DURATION_MS = 5 * LOOP_RATE_HZ; // 5 seconds
         static constexpr int NUM_OF_JOINTS = 12;
         static constexpr int WAIT_DURATION_MS = 10 * LOOP_RATE_HZ;    // 10 seconds
 
         // Methods
         unitree_legged_msgs::LowState getLowState();
+
+        void setRobotParams();
         void initialize(ros::NodeHandle& nh, std::string rname);
         void interpolateJoints(unitree_legged_msgs::LowState initialState, 
             const double *targetPos, int duration, int durationCounter
         );
         void publishLowCmd();
-        void setRobotParams();
-
-        bool getKeyPressed();
-        void setKeyPressed(bool pressed);
 
     private:
 
-        HardwareController() : initialized_(false) {};
-        HardwareController(const HardwareController&) = delete;
-        HardwareController& operator=(const HardwareController&) = delete;
+        ROSInterfaceManager() : initialized_(false) {};
+        ROSInterfaceManager(const ROSInterfaceManager&) = delete;
+        ROSInterfaceManager& operator=(const ROSInterfaceManager&) = delete;
 
         // Private members
         bool initialized_;
-        bool keyPressed_ = true;
         std::string robot_name_;
         
         ros::NodeHandle nh_;
         ros::Publisher jointState_pub_, realLowCmd_pub_, simLowCmd_pub_[NUM_OF_JOINTS];
-        ros::Subscriber footForce_sub_[4], imu_sub_,realLowState_sub_, simLowState_sub_[NUM_OF_JOINTS];
+        ros::Subscriber footForce_sub_[4], imu_sub_, realLowState_sub_, simLowState_sub_[NUM_OF_JOINTS];
 
         sensor_msgs::JointState jointState_;
         unitree_legged_msgs::LowCmd lowCmd_;
@@ -58,6 +55,7 @@ class HardwareController {
         
         // Private methods
         void setPublishers();
+        void setServices();
         void setSubscriptions();
 
         void imuCallback(const sensor_msgs::Imu &msg);

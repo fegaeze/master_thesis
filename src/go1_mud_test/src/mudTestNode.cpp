@@ -1,8 +1,8 @@
 #include <ros/package.h>
 
-#include "controller.hpp"
+#include "actionServer.hpp"
+#include "rosInterfaceManager.hpp"
 #include "mudTestActions.hpp"
-#include "mudTestConditions.hpp"
 
 
 int main(int argc, char **argv) {
@@ -12,24 +12,22 @@ int main(int argc, char **argv) {
     std::string rname;
     ros::param::get("/robot_name", rname);
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    ActionServer& actionServer = ActionServer::getInstance();
+    ROSInterfaceManager& rosManager = ROSInterfaceManager::getInstance();
 
-    HardwareController& controller = HardwareController::getInstance();
-    
-    controller.initialize(nh, rname);
-    ros::Rate loop_rate(controller.LOOP_RATE_HZ);
+    ros::Rate rate(rosManager.LOOP_RATE_HZ);
+
+    rosManager.initialize(nh, rname);
+    actionServer.initialize(nh, rname);
 
     BT::BehaviorTreeFactory factory;
+    actionServer.registerNodes(factory);
 
     Go1Initialized go1_initialized;
     go1_initialized.registerNodes(factory);
 
     factory.registerNodeType<Go1LieDown>("Go1LieDown");
-    factory.registerSimpleCondition("LieDownKeyPressed", std::bind(Go1LieDownCond::lieDownKeyPressed));
-
     factory.registerNodeType<Go1Stand>("Go1Stand");
-    factory.registerSimpleCondition("StandKeyPressed", std::bind(Go1StandCond::standKeyPressed));
 
     std::string package_name = "go1_mud_test";
     std::string relative_file_path = "/behavior_trees/mud_test.xml";
@@ -44,12 +42,13 @@ int main(int argc, char **argv) {
         ROS_ERROR("Failed to retrieve path for package '%s'", package_name.c_str());
     }
 
-    while (ros::ok()) {
+    while(ros::ok()) {
         tree.tickOnce();
+        rosManager.publishLowCmd();
         ros::spinOnce();
-        controller.publishLowCmd();
-        loop_rate.sleep();
+        rate.sleep();
     }
+
 
     return 0;
 }

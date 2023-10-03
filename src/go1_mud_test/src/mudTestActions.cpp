@@ -1,9 +1,20 @@
 #include "mudTestActions.hpp"
 
 
+unitree_legged_msgs::LowState Go1Base::lastKnownState_{};
+
+unitree_legged_msgs::LowState Go1Base::getLastKnownState() {
+  return lastKnownState_;
+}
+
+void Go1Base::setLastKnownState(unitree_legged_msgs::LowState state) {
+  lastKnownState_ = state;
+}
+
+
 /** INITIALIZATION ACTION */
 BT::NodeStatus Go1Initialized::robotStateReceived() {
-    unitree_legged_msgs::LowState lowState = controller_.getLowState();
+    unitree_legged_msgs::LowState lowState = rosManager_.getLowState();
 
     double FR_Calf = lowState.motorState[2].q;
     double FL_Calf = lowState.motorState[5].q;
@@ -13,7 +24,7 @@ BT::NodeStatus Go1Initialized::robotStateReceived() {
     if(FR_Calf != 0.0 && FL_Calf != 0.0 && RR_Calf != 0.0 && RL_Calf != 0.0) {
         return BT::NodeStatus::SUCCESS;
     }
-    
+
     return BT::NodeStatus::FAILURE;
 }
 
@@ -26,7 +37,7 @@ BT::NodeStatus Go1Initialized::robotParamInitialized() {
 
 BT::NodeStatus Go1Initialized::robotInitialization() {
     ROS_INFO("GO1_INITIAL_STATE");
-    controller_.setRobotParams();
+    rosManager_.setRobotParams();
     paramInitialized_ = true;
     return BT::NodeStatus::SUCCESS;
 }
@@ -46,17 +57,20 @@ void Go1Initialized::registerNodes(BT::BehaviorTreeFactory &factory)
 
 /** LIE DOWN ACTION */
 BT::NodeStatus Go1LieDown::onStart() {
-    ROS_INFO("GO1_LIE_DOWN_STATE_ACTION");
-    initialState_ = controller_.getLowState();
+    unitree_legged_msgs::LowState state = rosManager_.getLowState();
+    setLastKnownState(state);
     return BT::NodeStatus::RUNNING;
 }
 
 BT::NodeStatus Go1LieDown::onRunning() {
-    int duration = controller_.MOVEMENT_DURATION_MS;
-    controller_.interpolateJoints(initialState_, LIE_DOWN_JOINT_POSITIONS, duration, durationCounter_);
+    int duration = rosManager_.MOVEMENT_DURATION_MS;
+    unitree_legged_msgs::LowState lastKnownState = getLastKnownState();
+    rosManager_.interpolateJoints(lastKnownState, LIE_DOWN_JOINT_POSITIONS, duration, durationCounter_);
     durationCounter_ += 1;
 
     if(durationCounter_ >= duration) {
+        durationCounter_ = 0;
+        actionServer_.setLieDownKeyPressed(false);
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::RUNNING;
@@ -64,30 +78,35 @@ BT::NodeStatus Go1LieDown::onRunning() {
 
 void Go1LieDown::onHalted() {
     durationCounter_ = 0;
+    actionServer_.setLieDownKeyPressed(false);
 }
 
 
 /** STAND ACTION */
 BT::NodeStatus Go1Stand::onStart() {
     ROS_INFO("GO1_STAND_STATE_ACTION");
-    initialState_ = controller_.getLowState();
+    setLastKnownState(rosManager_.getLowState());
     return BT::NodeStatus::RUNNING;
 }
 
 BT::NodeStatus Go1Stand::onRunning() {
-    int duration = controller_.MOVEMENT_DURATION_MS;
-    controller_.interpolateJoints(initialState_, STAND_JOINT_POSITIONS, duration, durationCounter_);
+    int duration = rosManager_.MOVEMENT_DURATION_MS;
+    unitree_legged_msgs::LowState lastKnownState = getLastKnownState();
+    rosManager_.interpolateJoints(lastKnownState, STAND_JOINT_POSITIONS, duration, durationCounter_);
     durationCounter_ += 1;
 
     if(durationCounter_ >= duration) {
-        controller_.setKeyPressed(false);
+        durationCounter_ = 0;
+        actionServer_.setStandKeyPressed(false);
         return BT::NodeStatus::SUCCESS;
     }
+
     return BT::NodeStatus::RUNNING;
 }
 
 void Go1Stand::onHalted() {
     durationCounter_ = 0;
+    actionServer_.setStandKeyPressed(false);
 }
 
 

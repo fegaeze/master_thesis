@@ -1,22 +1,28 @@
 import { createContext, useState } from "react";
-import ROSLIB from "roslib";
+import { Service, Ros } from "roslib";
+
+import { ACTION_SERVICE_TYPE, ACTION_SERVICE_URL, ROSBRIDGE_URL } from "../config";
 
 const rosObj = {
-  ROS: new ROSLIB.Ros(),
-  url: "ws://localhost:8080",
+  ROS: new Ros(),
+  url: ROSBRIDGE_URL,
   isConnected: false,
   error: null,
-  topics: [],
-  services: [],
-  listeners: [],
 };
 
 const ROSContext = createContext([{}, () => {}]);
 
 const ROSProvider = (props) => {
   const [ros, setROS] = useState(rosObj);
+
+  const actionService = new Service({
+    ros : ros.ROS,
+    name : ACTION_SERVICE_URL,
+    serviceType : ACTION_SERVICE_TYPE,
+  });
+
   return (
-    <ROSContext.Provider value={[ros, setROS]}>
+    <ROSContext.Provider value={[ros, actionService, setROS]}>
       {props.children}
     </ROSContext.Provider>
   );

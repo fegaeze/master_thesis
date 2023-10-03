@@ -15,10 +15,10 @@
                     <Go1Stand name="go1_stand_action"/>
                 </ReactiveSequence>
 
-                <!-- <ReactiveSequence>
+                <ReactiveSequence>
                     <LieDownKeyPressed name="go1_lie_down_pressed?"/>
                     <Go1LieDown name="go1_lie_down_action"/>
-                </ReactiveSequence> -->
+                </ReactiveSequence>
             </ReactiveFallback>
             
         </ReactiveSequence>

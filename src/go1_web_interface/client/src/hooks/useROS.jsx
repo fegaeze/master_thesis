@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
+import { ServiceRequest } from "roslib";
 import { ROSContext, ROSProvider } from "../context/ROSContext";
 
 function useROS() {
-  const [ros, setROS] = useContext(ROSContext);
+  const [ros, actionService, setROS] = useContext(ROSContext);
 
   function changeUrl(new_url) {
     setROS((ros) => ({ ...ros, url: new_url }));
@@ -20,6 +21,14 @@ function useROS() {
         }));
       });
 
+      ros.ROS.on("close", () => {
+        setROS((ros) => ({ 
+          ...ros, 
+          isConnected: false,
+          error: null
+        }));
+      });
+
       ros.ROS.on("error", (error) => {
         setROS((ros) => ({ ...ros, error }));
       });
@@ -34,9 +43,7 @@ function useROS() {
       setROS((ros) => ({ 
         ...ros, 
         isConnected: false,
-        error: null,
-        topics: [],
-        listeners: []
+        error: null
       }));
     } catch (e) {
       console.log(e);
@@ -44,17 +51,24 @@ function useROS() {
     console.log("Disconnected from websocket server.");
   };
 
+  const sendServiceRequest = (serviceObj, callback) => {
+    try {
+      const request = new ServiceRequest(serviceObj);
+      actionService.callService(request, callback);
+    } catch (e) {
+      console.log(e, e.message);
+    }
+  }
+
   return {
     changeUrl,
     handleConnect,
     handleDisconnect,
+    sendServiceRequest,
     ros: ros.ROS,
     isConnected: ros.isConnected,
     error: ros.error,
     url: ros.url,
-    topics: ros.topics,
-    services: ros.services,
-    listeners: ros.listeners,
   };
 }
 

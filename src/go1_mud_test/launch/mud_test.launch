@@ -1,27 +1,40 @@
 <launch>
+    <arg name="debug" default="false"/>
+    <arg name="gui" default="false"/>
+    <arg name="headless" default="true"/>
     <arg name="paused" default="false"/>
     <arg name="simulation" default="true"/>
     <arg name="rname" default="go1"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="user_debug" default="false"/>
     <arg name="wname" default="earth"/>
 
     <param name="robot_name" value="$(arg rname)"/>
     <param name="behavior_tree_path" type="string" value="$(find go1_mud_test)/behavior_trees/mud_test.xml" />
-    <param name="robot_description" command="$(find xacro)/xacro '$(find go1_description)/xacro/robot.xacro'" />
+    <param 
+        name="robot_description" 
+        command="$(find xacro)/xacro '$(find go1_description)/xacro/robot.xacro' 
+        DEBUG:=$(arg user_debug)" />
     
     <rosparam file="$(find go1_description)/config/robot_control.yaml" command="load"/>
 
     <group if="$(arg simulation)">
-        <include file="$(find go1_mud_test)/launch/gazebo.launch">
-            <arg name="paused" value="$(arg paused)"/>
-            <arg name="wname" value="$(arg wname)" />
-        </include>
-
-        <node pkg="controller_manager" type="spawner" name="controller_spawner"
-            output="screen" ns="go1_gazebo" args="joint_state_controller
+        <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="false"
+            output="screen" ns="/$(arg rname)_gazebo" args="joint_state_controller
             FL_hip_controller FL_thigh_controller FL_calf_controller
             FR_hip_controller FR_thigh_controller FR_calf_controller
             RL_hip_controller RL_thigh_controller RL_calf_controller
-            RR_hip_controller RR_thigh_controller RR_calf_controller" />
+            RR_hip_controller RR_thigh_controller RR_calf_controller "/>
+
+        <include file="$(find go1_mud_test)/launch/gazebo.launch">
+            <arg name="gui" value="$(arg gui)"/>
+            <arg name="headless" value="$(arg headless)"/>
+            <arg name="debug" value="$(arg debug)"/>
+            <arg name="paused" value="$(arg paused)"/>
+            <arg name="rname" value="$(arg rname)" />
+            <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+            <arg name="wname" value="$(arg wname)" />
+        </include>
     </group>
 
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
@@ -29,6 +42,6 @@
         <remap if="$(arg simulation)" from="/joint_states" to="/go1_gazebo/joint_states" />
     </node>
 
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find go1_mud_test)/config/go1.rviz" />
-    <node pkg="go1_mud_test" type="go1_mud_test_main" name="go1_mud_test_main" respawn="false" output="screen" />
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find go1_mud_test)/config/go1.rviz" /> -->
+    <node pkg="go1_mud_test" type="go1_mud_test_node" name="go1_mud_test_node" respawn="false" output="screen" />
 </launch>
