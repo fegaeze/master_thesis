@@ -48,17 +48,30 @@ include_directories(
 link_directories(${GAZEBO_LIBRARY_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
+add_library(actionServiceManager src/actionServiceManager.cpp)
+target_link_libraries(actionServiceManager ${catkin_LIBRARIES} ${EXTRA_LIBS})
+
+add_library(config src/config.cpp)
+target_link_libraries(config ${catkin_LIBRARIES} ${EXTRA_LIBS})
+
+add_library(robotActionController src/robotActionController.cpp)
+add_dependencies(robotActionController unitree_legged_msgs_gencpp)
+target_link_libraries(robotActionController ${catkin_LIBRARIES} ${EXTRA_LIBS})
+
+add_library(robotActions src/robotActions.cpp)
+target_link_libraries(robotActions ${catkin_LIBRARIES} ${EXTRA_LIBS})
+
 add_library(rosInterfaceManager src/rosInterfaceManager.cpp)
 add_dependencies(rosInterfaceManager unitree_legged_msgs_gencpp)
 target_link_libraries(rosInterfaceManager ${catkin_LIBRARIES} ${EXTRA_LIBS})
 
-add_library(mudTestActions src/mudTestActions.cpp)
-add_dependencies(mudTestActions unitree_legged_msgs_gencpp)
-target_link_libraries(mudTestActions ${catkin_LIBRARIES} ${EXTRA_LIBS})
-
-add_library(actionServer src/actionServer.cpp)
-add_dependencies(actionServer unitree_legged_msgs_gencpp)
-target_link_libraries(actionServer ${catkin_LIBRARIES} ${EXTRA_LIBS})
-
 add_executable(go1_mud_test_node src/mudTestNode.cpp)
-target_link_libraries(go1_mud_test_node ${catkin_LIBRARIES} ${EXTRA_LIBS} rosInterfaceManager mudTestActions actionServer)
+target_link_libraries(go1_mud_test_node 
+  ${catkin_LIBRARIES} 
+  ${EXTRA_LIBS} 
+  actionServiceManager 
+  config 
+  robotActionController 
+  robotActions 
+  rosInterfaceManager
+)

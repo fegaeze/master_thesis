@@ -1,25 +1,25 @@
-#include "mudTestActions.hpp"
+#include "robotActions.hpp"
 
 
-unitree_legged_msgs::LowState Go1Base::lastKnownState_{};
-
-unitree_legged_msgs::LowState Go1Base::getLastKnownState() {
-  return lastKnownState_;
+constexpr double RobotStandAction::STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+    0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
+    0.0, 0.67, -1.3, -0.0, 0.67, -1.3
 }
 
-void Go1Base::setLastKnownState(unitree_legged_msgs::LowState state) {
-  lastKnownState_ = state;
-}
+constexpr double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+    -0.5, 1.15, -2.7, -0.5, 1.15, -2.7,
+    -0.5, 1.15, -2.7, -0.5, 1.15, -2.7
+};
 
 
 /** INITIALIZATION ACTION */
-BT::NodeStatus Go1Initialized::robotStateReceived() {
-    unitree_legged_msgs::LowState lowState = rosManager_.getLowState();
+BT::NodeStatus RobotInitializationAction::robotStateReceived() {
+    unitree_legged_msgs::LowState low_state = ros_manager.getLowState();
 
-    double FR_Calf = lowState.motorState[2].q;
-    double FL_Calf = lowState.motorState[5].q;
-    double RR_Calf = lowState.motorState[8].q;
-    double RL_Calf = lowState.motorState[11].q;
+    double FR_Calf = low_state.motorState[2].q;
+    double FL_Calf = low_state.motorState[5].q;
+    double RR_Calf = low_state.motorState[8].q;
+    double RL_Calf = low_state.motorState[11].q;
 
     if(FR_Calf != 0.0 && FL_Calf != 0.0 && RR_Calf != 0.0 && RL_Calf != 0.0) {
         return BT::NodeStatus::SUCCESS;
@@ -28,85 +28,69 @@ BT::NodeStatus Go1Initialized::robotStateReceived() {
     return BT::NodeStatus::FAILURE;
 }
 
-BT::NodeStatus Go1Initialized::robotParamInitialized() {
-    if(paramInitialized_) {
+BT::NodeStatus RobotInitializationAction::robotInitialized() {
+    if(robot_initialized) {
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
 }
 
-BT::NodeStatus Go1Initialized::robotInitialization() {
+BT::NodeStatus RobotInitializationAction::robotInitialization() {
     ROS_INFO("GO1_INITIAL_STATE");
-    rosManager_.setRobotParams();
-    paramInitialized_ = true;
+    ros_manager.setRobotParams();
+    robot_initialized = true;
     return BT::NodeStatus::SUCCESS;
 }
 
-void Go1Initialized::registerNodes(BT::BehaviorTreeFactory &factory)
+void RobotInitializationAction::registerNodes(BT::BehaviorTreeFactory &factory)
 {
     factory.registerSimpleCondition(
-        "RobotParamInitialized", std::bind(&Go1Initialized::robotParamInitialized, this));
+        "RobotInitialized", std::bind(&RobotInitializationAction::robotInitialized, this));
 
     factory.registerSimpleCondition(
-        "RobotStateReceived", std::bind(&Go1Initialized::robotStateReceived, this));
+        "RobotStateReceived", std::bind(&RobotInitializationAction::robotStateReceived, this));
 
     factory.registerSimpleAction(
-        "RobotInitialization", std::bind(&Go1Initialized::robotInitialization, this));
+        "RobotInitialization", std::bind(&RobotInitializationAction::robotInitialization, this));
 }
 
 
 /** LIE DOWN ACTION */
-BT::NodeStatus Go1LieDown::onStart() {
-    unitree_legged_msgs::LowState state = rosManager_.getLowState();
-    setLastKnownState(state);
-    return BT::NodeStatus::RUNNING;
+
+void RobotLieDownAction::handleKeyPressed(bool pressed) override {
+    action_service_manager.setLieDownKeyPressed(pressed);
 }
 
-BT::NodeStatus Go1LieDown::onRunning() {
-    int duration = rosManager_.MOVEMENT_DURATION_MS;
-    unitree_legged_msgs::LowState lastKnownState = getLastKnownState();
-    rosManager_.interpolateJoints(lastKnownState, LIE_DOWN_JOINT_POSITIONS, duration, durationCounter_);
-    durationCounter_ += 1;
-
-    if(durationCounter_ >= duration) {
-        durationCounter_ = 0;
-        actionServer_.setLieDownKeyPressed(false);
-        return BT::NodeStatus::SUCCESS;
-    }
-    return BT::NodeStatus::RUNNING;
+BT::NodeStatus RobotLieDownAction::onStart() {
+    ROS_INFO("GO1_LIE_DOWN_ACTION");
+    return actionStart();
 }
 
-void Go1LieDown::onHalted() {
-    durationCounter_ = 0;
-    actionServer_.setLieDownKeyPressed(false);
+BT::NodeStatus RobotLieDownAction::onRunning() {
+    return actionRunning(LIE_DOWN_JOINT_POSITIONS);
+}
+
+void RobotLieDownAction::onHalted() {
+    actionHalted();
 }
 
 
 /** STAND ACTION */
-BT::NodeStatus Go1Stand::onStart() {
+void RobotStandAction::handleKeyPressed(bool pressed) override {
+    action_service_manager.setStandKeyPressed(pressed);
+}
+
+BT::NodeStatus RobotStandAction::onStart() {
     ROS_INFO("GO1_STAND_STATE_ACTION");
-    setLastKnownState(rosManager_.getLowState());
-    return BT::NodeStatus::RUNNING;
+    return actionStart();
 }
 
-BT::NodeStatus Go1Stand::onRunning() {
-    int duration = rosManager_.MOVEMENT_DURATION_MS;
-    unitree_legged_msgs::LowState lastKnownState = getLastKnownState();
-    rosManager_.interpolateJoints(lastKnownState, STAND_JOINT_POSITIONS, duration, durationCounter_);
-    durationCounter_ += 1;
-
-    if(durationCounter_ >= duration) {
-        durationCounter_ = 0;
-        actionServer_.setStandKeyPressed(false);
-        return BT::NodeStatus::SUCCESS;
-    }
-
-    return BT::NodeStatus::RUNNING;
+BT::NodeStatus RobotStandAction::onRunning() {
+    return actionRunning(STAND_JOINT_POSITIONS);
 }
 
-void Go1Stand::onHalted() {
-    durationCounter_ = 0;
-    actionServer_.setStandKeyPressed(false);
+void RobotStandAction::onHalted() {
+    actionHalted();
 }
 
 

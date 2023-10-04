@@ -3,23 +3,26 @@ Copyright (c) 2018-2019, Unitree Robotics.Co.Ltd. All rights reserved.
 Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 ************************************************************************/
 
+#include "unitree_legged_sdk/unitree_legged_sdk.h"
+
 #include "rosInterfaceManager.hpp"
+#include "config.hpp"
 
 using namespace std::chrono_literals;
 
-
-/** INITIALIZATION METHODS */
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
   return instance;
 }
 
-void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string robot_name) {
-  if (!initialized_) {
+ROSInterfaceManager& ROSInterfaceManager::getInstance(ros::NodeHandle& nh, std::string rname) {
+  if (!class_initialized) {
+    static ROSInterfaceManager instance;
+    
     nh_ = nh;
-    robot_name_ = robot_name;
-    initialized_ = true;
+    robot_name = rname;
+    class_initialized = true;
 
     // jointState_.name = {
     //   "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
@@ -31,117 +34,98 @@ void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string robot_name
     setPublishers();
     setSubscriptions();
 
-    lowCmd_.head[0] = 0xFE;
-    lowCmd_.head[1] = 0xEF;
-    lowCmd_.levelFlag = UNITREE_LEGGED_SDK::LOWLEVEL;
+    robot_cmd.head[0] = 0xFE;
+    robot_cmd.head[1] = 0xEF;
+    robot_cmd.levelFlag = UNITREE_LEGGED_SDK::LOWLEVEL;
 
     for (int i = 0; i < 4; i++) {
-      lowCmd_.motorCmd[i*3+0].mode = 0x0A;
-      lowCmd_.motorCmd[i*3+0].Kp = 0;
-      lowCmd_.motorCmd[i*3+0].dq = 0;
-      lowCmd_.motorCmd[i*3+0].Kd = 0;
-      lowCmd_.motorCmd[i*3+0].tau = 0;
+      robot_cmd.motorCmd[i*3+0].mode = 0x0A;
+      robot_cmd.motorCmd[i*3+0].Kp = 0;
+      robot_cmd.motorCmd[i*3+0].dq = 0;
+      robot_cmd.motorCmd[i*3+0].Kd = 0;
+      robot_cmd.motorCmd[i*3+0].tau = 0;
 
-      lowCmd_.motorCmd[i*3+1].mode = 0x0A;
-      lowCmd_.motorCmd[i*3+1].Kp = 0;
-      lowCmd_.motorCmd[i*3+1].dq = 0;
-      lowCmd_.motorCmd[i*3+1].Kd = 0;
-      lowCmd_.motorCmd[i*3+1].tau = 0;
+      robot_cmd.motorCmd[i*3+1].mode = 0x0A;
+      robot_cmd.motorCmd[i*3+1].Kp = 0;
+      robot_cmd.motorCmd[i*3+1].dq = 0;
+      robot_cmd.motorCmd[i*3+1].Kd = 0;
+      robot_cmd.motorCmd[i*3+1].tau = 0;
 
-      lowCmd_.motorCmd[i*3+2].mode = 0x0A;
-      lowCmd_.motorCmd[i*3+2].Kp = 0;
-      lowCmd_.motorCmd[i*3+2].dq = 0;
-      lowCmd_.motorCmd[i*3+2].Kd = 0;
-      lowCmd_.motorCmd[i*3+2].tau = 0;
+      robot_cmd.motorCmd[i*3+2].mode = 0x0A;
+      robot_cmd.motorCmd[i*3+2].Kp = 0;
+      robot_cmd.motorCmd[i*3+2].dq = 0;
+      robot_cmd.motorCmd[i*3+2].Kd = 0;
+      robot_cmd.motorCmd[i*3+2].tau = 0;
     }
 
-    for(int i=0; i<NUM_OF_JOINTS; i++){
-      lowCmd_.motorCmd[i].q = lowState_.motorState[i].q;
+    for(int i=0; i<Config::NUM_OF_JOINTS; i++){
+      robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
     }
+
+    return instance;
   }
 }
 
 
-/** GETTER & SETTER */
-unitree_legged_msgs::LowState ROSInterfaceManager::getLowState() {
-  return lowState_;
+unitree_legged_msgs::LowState ROSInterfaceManager::getRobotState() {
+  return robot_state;
 }
 
 void ROSInterfaceManager::setPublishers() {
-  jointState_pub_ = nh_.advertise<sensor_msgs::JointState>("/" + robot_name_ + "/joint_states", 1);
-  realLowCmd_pub_ = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
-  simLowCmd_pub_[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_hip_controller/command", 1);
-  simLowCmd_pub_[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_thigh_controller/command", 1);
-  simLowCmd_pub_[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FR_calf_controller/command", 1);
-  simLowCmd_pub_[3] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_hip_controller/command", 1);
-  simLowCmd_pub_[4] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_thigh_controller/command", 1);
-  simLowCmd_pub_[5] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/FL_calf_controller/command", 1);
-  simLowCmd_pub_[6] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_hip_controller/command", 1);
-  simLowCmd_pub_[7] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_thigh_controller/command", 1);
-  simLowCmd_pub_[8] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RR_calf_controller/command", 1);
-  simLowCmd_pub_[9] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_hip_controller/command", 1);
-  simLowCmd_pub_[10] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_thigh_controller/command", 1);
-  simLowCmd_pub_[11] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name_ + "_gazebo/RL_calf_controller/command", 1);
+  joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/" + robot_name + "/joint_states", 1);
+  real_robot_cmd_pub = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
+  sim_low_cmd_pub[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_hip_controller/command", 1);
+  sim_low_cmd_pub[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_thigh_controller/command", 1);
+  sim_low_cmd_pub[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_calf_controller/command", 1);
+  sim_low_cmd_pub[3] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_hip_controller/command", 1);
+  sim_low_cmd_pub[4] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_thigh_controller/command", 1);
+  sim_low_cmd_pub[5] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_calf_controller/command", 1);
+  sim_low_cmd_pub[6] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_hip_controller/command", 1);
+  sim_low_cmd_pub[7] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_thigh_controller/command", 1);
+  sim_low_cmd_pub[8] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_calf_controller/command", 1);
+  sim_low_cmd_pub[9] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_hip_controller/command", 1);
+  sim_low_cmd_pub[10] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_thigh_controller/command", 1);
+  sim_low_cmd_pub[11] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_calf_controller/command", 1);
 }
 
 void ROSInterfaceManager::setRobotParams() {
-  for(int i=0; i<NUM_OF_JOINTS; i++){
-    lowCmd_.motorCmd[i].q = lowState_.motorState[i].q;
+  for(int i=0; i<Config::NUM_OF_JOINTS; i++){
+    robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
   }
 
   for (int i = 0; i < 4; i++) {
-    lowCmd_.motorCmd[i * 3 + 0].Kp = 70 * 0.05;
-    lowCmd_.motorCmd[i * 3 + 0].Kd = 3 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.05;
 
-    lowCmd_.motorCmd[i * 3 + 1].Kp = 180 * 0.05;
-    lowCmd_.motorCmd[i * 3 + 1].Kd = 8 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.05;
 
-    lowCmd_.motorCmd[i * 3 + 2].Kp = 300 * 0.05;
-    lowCmd_.motorCmd[i * 3 + 2].Kd = 15 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.05;
   }
 }
 
 void ROSInterfaceManager::setSubscriptions() {
-  imu_sub_ = nh_.subscribe("/trunk_imu", 1, &ROSInterfaceManager::imuCallback, this);
-  footForce_sub_[0] = nh_.subscribe("/visual/FR_foot_contact/the_force", 1, &ROSInterfaceManager::FRfootCallback, this);
-  footForce_sub_[1] = nh_.subscribe("/visual/FL_foot_contact/the_force", 1, &ROSInterfaceManager::FLfootCallback, this);
-  footForce_sub_[2] = nh_.subscribe("/visual/RR_foot_contact/the_force", 1, &ROSInterfaceManager::RRfootCallback, this);
-  footForce_sub_[3] = nh_.subscribe("/visual/RL_foot_contact/the_force", 1, &ROSInterfaceManager::RLfootCallback, this);
-  realLowState_sub_ = nh_.subscribe("/low_state", 1, &ROSInterfaceManager::lowStateCallback, this);
-  simLowState_sub_[0] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_hip_controller/state", 1, &ROSInterfaceManager::FRhipCallback, this);
-  simLowState_sub_[1] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_thigh_controller/state", 1, &ROSInterfaceManager::FRthighCallback, this);
-  simLowState_sub_[2] = nh_.subscribe("/" + robot_name_ + "_gazebo/FR_calf_controller/state", 1, &ROSInterfaceManager::FRcalfCallback, this);
-  simLowState_sub_[3] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_hip_controller/state", 1, &ROSInterfaceManager::FLhipCallback, this);
-  simLowState_sub_[4] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_thigh_controller/state", 1, &ROSInterfaceManager::FLthighCallback, this);
-  simLowState_sub_[5] = nh_.subscribe("/" + robot_name_ + "_gazebo/FL_calf_controller/state", 1, &ROSInterfaceManager::FLcalfCallback, this);
-  simLowState_sub_[6] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_hip_controller/state", 1, &ROSInterfaceManager::RRhipCallback, this);
-  simLowState_sub_[7] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_thigh_controller/state", 1, &ROSInterfaceManager::RRthighCallback, this);
-  simLowState_sub_[8] = nh_.subscribe("/" + robot_name_ + "_gazebo/RR_calf_controller/state", 1, &ROSInterfaceManager::RRcalfCallback, this);
-  simLowState_sub_[9] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_hip_controller/state", 1, &ROSInterfaceManager::RLhipCallback, this);
-  simLowState_sub_[10] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_thigh_controller/state", 1, &ROSInterfaceManager::RLthighCallback, this);
-  simLowState_sub_[11] = nh_.subscribe("/" + robot_name_ + "_gazebo/RL_calf_controller/state", 1, &ROSInterfaceManager::RLcalfCallback, this);
+  imu_sub = nh_.subscribe("/trunk_imu", 1, &ROSInterfaceManager::imuCallback, this);
+  real_low_state_sub = nh_.subscribe("/low_state", 1, &ROSInterfaceManager::lowStateCallback, this);
+  sim_low_state_sub[0] = nh_.subscribe("/" + robot_name + "_gazebo/FR_hip_controller/state", 1, &ROSInterfaceManager::FRhipCallback, this);
+  sim_low_state_sub[1] = nh_.subscribe("/" + robot_name + "_gazebo/FR_thigh_controller/state", 1, &ROSInterfaceManager::FRthighCallback, this);
+  sim_low_state_sub[2] = nh_.subscribe("/" + robot_name + "_gazebo/FR_calf_controller/state", 1, &ROSInterfaceManager::FRcalfCallback, this);
+  sim_low_state_sub[3] = nh_.subscribe("/" + robot_name + "_gazebo/FL_hip_controller/state", 1, &ROSInterfaceManager::FLhipCallback, this);
+  sim_low_state_sub[4] = nh_.subscribe("/" + robot_name + "_gazebo/FL_thigh_controller/state", 1, &ROSInterfaceManager::FLthighCallback, this);
+  sim_low_state_sub[5] = nh_.subscribe("/" + robot_name + "_gazebo/FL_calf_controller/state", 1, &ROSInterfaceManager::FLcalfCallback, this);
+  sim_low_state_sub[6] = nh_.subscribe("/" + robot_name + "_gazebo/RR_hip_controller/state", 1, &ROSInterfaceManager::RRhipCallback, this);
+  sim_low_state_sub[7] = nh_.subscribe("/" + robot_name + "_gazebo/RR_thigh_controller/state", 1, &ROSInterfaceManager::RRthighCallback, this);
+  sim_low_state_sub[8] = nh_.subscribe("/" + robot_name + "_gazebo/RR_calf_controller/state", 1, &ROSInterfaceManager::RRcalfCallback, this);
+  sim_low_state_sub[9] = nh_.subscribe("/" + robot_name + "_gazebo/RL_hip_controller/state", 1, &ROSInterfaceManager::RLhipCallback, this);
+  sim_low_state_sub[10] = nh_.subscribe("/" + robot_name + "_gazebo/RL_thigh_controller/state", 1, &ROSInterfaceManager::RLthighCallback, this);
+  sim_low_state_sub[11] = nh_.subscribe("/" + robot_name + "_gazebo/RL_calf_controller/state", 1, &ROSInterfaceManager::RLcalfCallback, this);
 }
 
-
-/** ACTION METHODS */
-
-void ROSInterfaceManager::interpolateJoints(
-  unitree_legged_msgs::LowState initialState, 
-  const double *targetPos, int duration, int durationCounter
-) {
-  double initialPos[NUM_OF_JOINTS];
-  double percent = static_cast<double>(durationCounter) / static_cast<double>(duration);
-
-  for (int j = 0; j < NUM_OF_JOINTS; j++) {
-    initialPos[j] = initialState.motorState[j].q;
-    lowCmd_.motorCmd[j].q = (initialPos[j] * (1 - percent)) + (targetPos[j] * percent);
-  }
-}
-
-void ROSInterfaceManager::publishLowCmd() {
-  realLowCmd_pub_.publish(lowCmd_);
-  for (int m = 0; m < NUM_OF_JOINTS; m++) {
-    simLowCmd_pub_[m].publish(lowCmd_.motorCmd[m]);
+void ROSInterfaceManager::publishRobotCmd() {
+  real_low_cmd_pub.publish(robot_cmd);
+  for (int m = 0; m < Config::NUM_OF_JOINTS; m++) {
+    sim_low_cmd_pub[m].publish(robot_cmd.motorCmd[m]);
   }
 }
 
@@ -150,18 +134,18 @@ void ROSInterfaceManager::publishLowCmd() {
 
 void ROSInterfaceManager::lowStateCallback(
   const unitree_legged_msgs::LowState::ConstPtr &msg) {
-  lowState_.imu.quaternion[0] = msg->imu.quaternion[0];
-  lowState_.imu.quaternion[1] = msg->imu.quaternion[1];
-  lowState_.imu.quaternion[2] = msg->imu.quaternion[2];
-  lowState_.imu.quaternion[3] = msg->imu.quaternion[3];
+  robot_state.imu.quaternion[0] = msg->imu.quaternion[0];
+  robot_state.imu.quaternion[1] = msg->imu.quaternion[1];
+  robot_state.imu.quaternion[2] = msg->imu.quaternion[2];
+  robot_state.imu.quaternion[3] = msg->imu.quaternion[3];
 
-  lowState_.imu.gyroscope[0] = msg->imu.gyroscope[0];
-  lowState_.imu.gyroscope[1] = msg->imu.gyroscope[1];
-  lowState_.imu.gyroscope[2] = msg->imu.gyroscope[2];
+  robot_state.imu.gyroscope[0] = msg->imu.gyroscope[0];
+  robot_state.imu.gyroscope[1] = msg->imu.gyroscope[1];
+  robot_state.imu.gyroscope[2] = msg->imu.gyroscope[2];
 
-  lowState_.imu.accelerometer[0] = msg->imu.accelerometer[0];
-  lowState_.imu.accelerometer[1] = msg->imu.accelerometer[1];
-  lowState_.imu.accelerometer[2] = msg->imu.accelerometer[2];
+  robot_state.imu.accelerometer[0] = msg->imu.accelerometer[0];
+  robot_state.imu.accelerometer[1] = msg->imu.accelerometer[1];
+  robot_state.imu.accelerometer[2] = msg->imu.accelerometer[2];
 
   FRhipCallback(msg->motorState[UNITREE_LEGGED_SDK::FR_0]);
   FRthighCallback(msg->motorState[UNITREE_LEGGED_SDK::FR_1]);
@@ -177,154 +161,122 @@ void ROSInterfaceManager::lowStateCallback(
   RLcalfCallback(msg->motorState[UNITREE_LEGGED_SDK::RL_2]);
 
   // jointState_.header.stamp = ros::Time::now();
-  // for (int i(0); i < NUM_OF_JOINTS; ++i) {
-  //   jointState_.position.push_back(lowState_.motorState[i].q);
-  //   jointState_.velocity.push_back(lowState_.motorState[i].dq);
-  //   jointState_.effort.push_back(lowState_.motorState[i].tauEst);
+  // for (int i(0); i < Config::NUM_OF_JOINTS; ++i) {
+  //   jointState_.position.push_back(robot_state.motorState[i].q);
+  //   jointState_.velocity.push_back(robot_state.motorState[i].dq);
+  //   jointState_.effort.push_back(robot_state.motorState[i].tauEst);
   // }
   // jointState_pub_.publish(jointState_);
 }
 
 void ROSInterfaceManager::imuCallback(const sensor_msgs::Imu &msg)
 {
-  lowState_.imu.quaternion[0] = msg.orientation.w;
-  lowState_.imu.quaternion[1] = msg.orientation.x;
-  lowState_.imu.quaternion[2] = msg.orientation.y;
-  lowState_.imu.quaternion[3] = msg.orientation.z;
+  robot_state.imu.quaternion[0] = msg.orientation.w;
+  robot_state.imu.quaternion[1] = msg.orientation.x;
+  robot_state.imu.quaternion[2] = msg.orientation.y;
+  robot_state.imu.quaternion[3] = msg.orientation.z;
 
-  lowState_.imu.gyroscope[0] = msg.angular_velocity.x;
-  lowState_.imu.gyroscope[1] = msg.angular_velocity.y;
-  lowState_.imu.gyroscope[2] = msg.angular_velocity.z;
+  robot_state.imu.gyroscope[0] = msg.angular_velocity.x;
+  robot_state.imu.gyroscope[1] = msg.angular_velocity.y;
+  robot_state.imu.gyroscope[2] = msg.angular_velocity.z;
 
-  lowState_.imu.accelerometer[0] = msg.linear_acceleration.x;
-  lowState_.imu.accelerometer[1] = msg.linear_acceleration.y;
-  lowState_.imu.accelerometer[2] = msg.linear_acceleration.z;
+  robot_state.imu.accelerometer[0] = msg.linear_acceleration.x;
+  robot_state.imu.accelerometer[1] = msg.linear_acceleration.y;
+  robot_state.imu.accelerometer[2] = msg.linear_acceleration.z;
 }
 
 void ROSInterfaceManager::FRhipCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[0].mode = msg.mode;
-  lowState_.motorState[0].q = msg.q;
-  lowState_.motorState[0].dq = msg.dq;
-  lowState_.motorState[0].tauEst = msg.tauEst;
+  robot_state.motorState[0].mode = msg.mode;
+  robot_state.motorState[0].q = msg.q;
+  robot_state.motorState[0].dq = msg.dq;
+  robot_state.motorState[0].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::FRthighCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[1].mode = msg.mode;
-  lowState_.motorState[1].q = msg.q;
-  lowState_.motorState[1].dq = msg.dq;
-  lowState_.motorState[1].tauEst = msg.tauEst;
+  robot_state.motorState[1].mode = msg.mode;
+  robot_state.motorState[1].q = msg.q;
+  robot_state.motorState[1].dq = msg.dq;
+  robot_state.motorState[1].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::FRcalfCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[2].mode = msg.mode;
-  lowState_.motorState[2].q = msg.q;
-  lowState_.motorState[2].dq = msg.dq;
-  lowState_.motorState[2].tauEst = msg.tauEst;
+  robot_state.motorState[2].mode = msg.mode;
+  robot_state.motorState[2].q = msg.q;
+  robot_state.motorState[2].dq = msg.dq;
+  robot_state.motorState[2].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::FLhipCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[3].mode = msg.mode;
-  lowState_.motorState[3].q = msg.q;
-  lowState_.motorState[3].dq = msg.dq;
-  lowState_.motorState[3].tauEst = msg.tauEst;
+  robot_state.motorState[3].mode = msg.mode;
+  robot_state.motorState[3].q = msg.q;
+  robot_state.motorState[3].dq = msg.dq;
+  robot_state.motorState[3].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::FLthighCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[4].mode = msg.mode;
-  lowState_.motorState[4].q = msg.q;
-  lowState_.motorState[4].dq = msg.dq;
-  lowState_.motorState[4].tauEst = msg.tauEst;
+  robot_state.motorState[4].mode = msg.mode;
+  robot_state.motorState[4].q = msg.q;
+  robot_state.motorState[4].dq = msg.dq;
+  robot_state.motorState[4].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::FLcalfCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[5].mode = msg.mode;
-  lowState_.motorState[5].q = msg.q;
-  lowState_.motorState[5].dq = msg.dq;
-  lowState_.motorState[5].tauEst = msg.tauEst;
+  robot_state.motorState[5].mode = msg.mode;
+  robot_state.motorState[5].q = msg.q;
+  robot_state.motorState[5].dq = msg.dq;
+  robot_state.motorState[5].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RRhipCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[6].mode = msg.mode;
-  lowState_.motorState[6].q = msg.q;
-  lowState_.motorState[6].dq = msg.dq;
-  lowState_.motorState[6].tauEst = msg.tauEst;
+  robot_state.motorState[6].mode = msg.mode;
+  robot_state.motorState[6].q = msg.q;
+  robot_state.motorState[6].dq = msg.dq;
+  robot_state.motorState[6].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RRthighCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[7].mode = msg.mode;
-  lowState_.motorState[7].q = msg.q;
-  lowState_.motorState[7].dq = msg.dq;
-  lowState_.motorState[7].tauEst = msg.tauEst;
+  robot_state.motorState[7].mode = msg.mode;
+  robot_state.motorState[7].q = msg.q;
+  robot_state.motorState[7].dq = msg.dq;
+  robot_state.motorState[7].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RRcalfCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[8].mode = msg.mode;
-  lowState_.motorState[8].q = msg.q;
-  lowState_.motorState[8].dq = msg.dq;
-  lowState_.motorState[8].tauEst = msg.tauEst;
+  robot_state.motorState[8].mode = msg.mode;
+  robot_state.motorState[8].q = msg.q;
+  robot_state.motorState[8].dq = msg.dq;
+  robot_state.motorState[8].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RLhipCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[9].mode = msg.mode;
-  lowState_.motorState[9].q = msg.q;
-  lowState_.motorState[9].dq = msg.dq;
-  lowState_.motorState[9].tauEst = msg.tauEst;
+  robot_state.motorState[9].mode = msg.mode;
+  robot_state.motorState[9].q = msg.q;
+  robot_state.motorState[9].dq = msg.dq;
+  robot_state.motorState[9].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RLthighCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[10].mode = msg.mode;
-  lowState_.motorState[10].q = msg.q;
-  lowState_.motorState[10].dq = msg.dq;
-  lowState_.motorState[10].tauEst = msg.tauEst;
+  robot_state.motorState[10].mode = msg.mode;
+  robot_state.motorState[10].q = msg.q;
+  robot_state.motorState[10].dq = msg.dq;
+  robot_state.motorState[10].tauEst = msg.tauEst;
 }
 
 void ROSInterfaceManager::RLcalfCallback(
     const unitree_legged_msgs::MotorState &msg) {
-  lowState_.motorState[11].mode = msg.mode;
-  lowState_.motorState[11].q = msg.q;
-  lowState_.motorState[11].dq = msg.dq;
-  lowState_.motorState[11].tauEst = msg.tauEst;
-}
-
-void ROSInterfaceManager::FRfootCallback(
-    const geometry_msgs::WrenchStamped &msg) {
-  lowState_.eeForce[0].x = msg.wrench.force.x;
-  lowState_.eeForce[0].y = msg.wrench.force.y;
-  lowState_.eeForce[0].z = msg.wrench.force.z;
-  lowState_.footForce[0] = msg.wrench.force.z;
-}
-
-void ROSInterfaceManager::FLfootCallback(
-    const geometry_msgs::WrenchStamped &msg) {
-  lowState_.eeForce[1].x = msg.wrench.force.x;
-  lowState_.eeForce[1].y = msg.wrench.force.y;
-  lowState_.eeForce[1].z = msg.wrench.force.z;
-  lowState_.footForce[1] = msg.wrench.force.z;
-}
-
-void ROSInterfaceManager::RRfootCallback(
-    const geometry_msgs::WrenchStamped &msg) {
-  lowState_.eeForce[2].x = msg.wrench.force.x;
-  lowState_.eeForce[2].y = msg.wrench.force.y;
-  lowState_.eeForce[2].z = msg.wrench.force.z;
-  lowState_.footForce[2] = msg.wrench.force.z;
-}
-
-void ROSInterfaceManager::RLfootCallback(
-    const geometry_msgs::WrenchStamped &msg) {
-  lowState_.eeForce[3].x = msg.wrench.force.x;
-  lowState_.eeForce[3].y = msg.wrench.force.y;
-  lowState_.eeForce[3].z = msg.wrench.force.z;
-  lowState_.footForce[3] = msg.wrench.force.z;
+  robot_state.motorState[11].mode = msg.mode;
+  robot_state.motorState[11].q = msg.q;
+  robot_state.motorState[11].dq = msg.dq;
+  robot_state.motorState[11].tauEst = msg.tauEst;
 }

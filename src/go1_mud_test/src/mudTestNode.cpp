@@ -1,8 +1,9 @@
 #include <ros/package.h>
 
-#include "actionServer.hpp"
+#include "actionServiceManager.hpp"
 #include "rosInterfaceManager.hpp"
-#include "mudTestActions.hpp"
+#include "robotActions.hpp"
+#include "config.hpp"
 
 
 int main(int argc, char **argv) {
@@ -11,23 +12,20 @@ int main(int argc, char **argv) {
 
     std::string rname;
     ros::param::get("/robot_name", rname);
+    ros::AsyncSpinner spinner(1);
+    ros::Rate rate(Config::LOOP_RATE_HZ);
+    spinner.start();
 
-    ActionServer& actionServer = ActionServer::getInstance();
-    ROSInterfaceManager& rosManager = ROSInterfaceManager::getInstance();
-
-    ros::Rate rate(rosManager.LOOP_RATE_HZ);
-
-    rosManager.initialize(nh, rname);
-    actionServer.initialize(nh, rname);
+    ActionServiceManager& action_service_manager = ActionServiceManager::getInstance(nh, rname);
+    ROSInterfaceManager& ros_manager = ROSInterfaceManager::getInstance(nh, rname);
 
     BT::BehaviorTreeFactory factory;
-    actionServer.registerNodes(factory);
+    RobotInitializationAction initialized;
 
-    Go1Initialized go1_initialized;
-    go1_initialized.registerNodes(factory);
-
-    factory.registerNodeType<Go1LieDown>("Go1LieDown");
-    factory.registerNodeType<Go1Stand>("Go1Stand");
+    factory.registerNodeType<RobotLieDownAction>("RobotLieDownAction");
+    factory.registerNodeType<RobotStandAction>("RobotStandAction");
+    action_service_manager.registerNodes(factory);
+    robot_initialized.registerNodes(factory);
 
     std::string package_name = "go1_mud_test";
     std::string relative_file_path = "/behavior_trees/mud_test.xml";
@@ -44,7 +42,7 @@ int main(int argc, char **argv) {
 
     while(ros::ok()) {
         tree.tickOnce();
-        rosManager.publishLowCmd();
+        ros_manager.publishLowCmd();
         ros::spinOnce();
         rate.sleep();
     }
