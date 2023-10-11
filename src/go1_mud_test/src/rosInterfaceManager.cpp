@@ -11,58 +11,62 @@ Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 using namespace std::chrono_literals;
 
 
+bool ROSInterfaceManager::class_initialized = false;
+
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
   return instance;
 }
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance(ros::NodeHandle& nh, std::string rname) {
+  static ROSInterfaceManager instance;
   if (!class_initialized) {
-    static ROSInterfaceManager instance;
-    
-    nh_ = nh;
-    robot_name = rname;
+    instance.initialize(nh, rname);
     class_initialized = true;
+  }
+  return instance;
+}
 
-    // jointState_.name = {
-    //   "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
-    //   "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
-    //   "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint", 
-    //   "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"
-    // };
+void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string rname) {
+  nh_ = nh;
+  robot_name = rname;
 
-    setPublishers();
-    setSubscriptions();
+  // jointState_.name = {
+  //   "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
+  //   "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
+  //   "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint", 
+  //   "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"
+  // };
 
-    robot_cmd.head[0] = 0xFE;
-    robot_cmd.head[1] = 0xEF;
-    robot_cmd.levelFlag = UNITREE_LEGGED_SDK::LOWLEVEL;
+  setPublishers();
+  setSubscriptions();
 
-    for (int i = 0; i < 4; i++) {
-      robot_cmd.motorCmd[i*3+0].mode = 0x0A;
-      robot_cmd.motorCmd[i*3+0].Kp = 0;
-      robot_cmd.motorCmd[i*3+0].dq = 0;
-      robot_cmd.motorCmd[i*3+0].Kd = 0;
-      robot_cmd.motorCmd[i*3+0].tau = 0;
+  robot_cmd.head[0] = 0xFE;
+  robot_cmd.head[1] = 0xEF;
+  robot_cmd.levelFlag = UNITREE_LEGGED_SDK::LOWLEVEL;
 
-      robot_cmd.motorCmd[i*3+1].mode = 0x0A;
-      robot_cmd.motorCmd[i*3+1].Kp = 0;
-      robot_cmd.motorCmd[i*3+1].dq = 0;
-      robot_cmd.motorCmd[i*3+1].Kd = 0;
-      robot_cmd.motorCmd[i*3+1].tau = 0;
+  for (int i = 0; i < 4; i++) {
+    robot_cmd.motorCmd[i*3+0].mode = 0x0A;
+    robot_cmd.motorCmd[i*3+0].Kp = 0;
+    robot_cmd.motorCmd[i*3+0].dq = 0;
+    robot_cmd.motorCmd[i*3+0].Kd = 0;
+    robot_cmd.motorCmd[i*3+0].tau = 0;
 
-      robot_cmd.motorCmd[i*3+2].mode = 0x0A;
-      robot_cmd.motorCmd[i*3+2].Kp = 0;
-      robot_cmd.motorCmd[i*3+2].dq = 0;
-      robot_cmd.motorCmd[i*3+2].Kd = 0;
-      robot_cmd.motorCmd[i*3+2].tau = 0;
-    }
+    robot_cmd.motorCmd[i*3+1].mode = 0x0A;
+    robot_cmd.motorCmd[i*3+1].Kp = 0;
+    robot_cmd.motorCmd[i*3+1].dq = 0;
+    robot_cmd.motorCmd[i*3+1].Kd = 0;
+    robot_cmd.motorCmd[i*3+1].tau = 0;
 
-    for(int i=0; i<Config::NUM_OF_JOINTS; i++){
-      robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
-    }
+    robot_cmd.motorCmd[i*3+2].mode = 0x0A;
+    robot_cmd.motorCmd[i*3+2].Kp = 0;
+    robot_cmd.motorCmd[i*3+2].dq = 0;
+    robot_cmd.motorCmd[i*3+2].Kd = 0;
+    robot_cmd.motorCmd[i*3+2].tau = 0;
+  }
 
-    return instance;
+  for(int i=0; i<Config::NUM_OF_JOINTS; i++){
+    robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
   }
 }
 
@@ -74,20 +78,23 @@ unitree_legged_msgs::LowState ROSInterfaceManager::getRobotState() {
 void ROSInterfaceManager::setPublishers() {
   joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/" + robot_name + "/joint_states", 1);
   real_robot_cmd_pub = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
-  sim_low_cmd_pub[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_hip_controller/command", 1);
-  sim_low_cmd_pub[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_thigh_controller/command", 1);
-  sim_low_cmd_pub[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_calf_controller/command", 1);
-  sim_low_cmd_pub[3] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_hip_controller/command", 1);
-  sim_low_cmd_pub[4] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_thigh_controller/command", 1);
-  sim_low_cmd_pub[5] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_calf_controller/command", 1);
-  sim_low_cmd_pub[6] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_hip_controller/command", 1);
-  sim_low_cmd_pub[7] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_thigh_controller/command", 1);
-  sim_low_cmd_pub[8] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_calf_controller/command", 1);
-  sim_low_cmd_pub[9] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_hip_controller/command", 1);
-  sim_low_cmd_pub[10] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_thigh_controller/command", 1);
-  sim_low_cmd_pub[11] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_calf_controller/command", 1);
+  sim_robot_cmd_pub[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_hip_controller/command", 1);
+  sim_robot_cmd_pub[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_thigh_controller/command", 1);
+  sim_robot_cmd_pub[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_calf_controller/command", 1);
+  sim_robot_cmd_pub[3] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_hip_controller/command", 1);
+  sim_robot_cmd_pub[4] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_thigh_controller/command", 1);
+  sim_robot_cmd_pub[5] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FL_calf_controller/command", 1);
+  sim_robot_cmd_pub[6] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_hip_controller/command", 1);
+  sim_robot_cmd_pub[7] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_thigh_controller/command", 1);
+  sim_robot_cmd_pub[8] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RR_calf_controller/command", 1);
+  sim_robot_cmd_pub[9] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_hip_controller/command", 1);
+  sim_robot_cmd_pub[10] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_thigh_controller/command", 1);
+  sim_robot_cmd_pub[11] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/RL_calf_controller/command", 1);
 }
 
+void ROSInterfaceManager::setRobotCmd(int joint, double pos) {
+  robot_cmd.motorCmd[joint].q = pos;
+}
 void ROSInterfaceManager::setRobotParams() {
   for(int i=0; i<Config::NUM_OF_JOINTS; i++){
     robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
@@ -107,25 +114,25 @@ void ROSInterfaceManager::setRobotParams() {
 
 void ROSInterfaceManager::setSubscriptions() {
   imu_sub = nh_.subscribe("/trunk_imu", 1, &ROSInterfaceManager::imuCallback, this);
-  real_low_state_sub = nh_.subscribe("/low_state", 1, &ROSInterfaceManager::lowStateCallback, this);
-  sim_low_state_sub[0] = nh_.subscribe("/" + robot_name + "_gazebo/FR_hip_controller/state", 1, &ROSInterfaceManager::FRhipCallback, this);
-  sim_low_state_sub[1] = nh_.subscribe("/" + robot_name + "_gazebo/FR_thigh_controller/state", 1, &ROSInterfaceManager::FRthighCallback, this);
-  sim_low_state_sub[2] = nh_.subscribe("/" + robot_name + "_gazebo/FR_calf_controller/state", 1, &ROSInterfaceManager::FRcalfCallback, this);
-  sim_low_state_sub[3] = nh_.subscribe("/" + robot_name + "_gazebo/FL_hip_controller/state", 1, &ROSInterfaceManager::FLhipCallback, this);
-  sim_low_state_sub[4] = nh_.subscribe("/" + robot_name + "_gazebo/FL_thigh_controller/state", 1, &ROSInterfaceManager::FLthighCallback, this);
-  sim_low_state_sub[5] = nh_.subscribe("/" + robot_name + "_gazebo/FL_calf_controller/state", 1, &ROSInterfaceManager::FLcalfCallback, this);
-  sim_low_state_sub[6] = nh_.subscribe("/" + robot_name + "_gazebo/RR_hip_controller/state", 1, &ROSInterfaceManager::RRhipCallback, this);
-  sim_low_state_sub[7] = nh_.subscribe("/" + robot_name + "_gazebo/RR_thigh_controller/state", 1, &ROSInterfaceManager::RRthighCallback, this);
-  sim_low_state_sub[8] = nh_.subscribe("/" + robot_name + "_gazebo/RR_calf_controller/state", 1, &ROSInterfaceManager::RRcalfCallback, this);
-  sim_low_state_sub[9] = nh_.subscribe("/" + robot_name + "_gazebo/RL_hip_controller/state", 1, &ROSInterfaceManager::RLhipCallback, this);
-  sim_low_state_sub[10] = nh_.subscribe("/" + robot_name + "_gazebo/RL_thigh_controller/state", 1, &ROSInterfaceManager::RLthighCallback, this);
-  sim_low_state_sub[11] = nh_.subscribe("/" + robot_name + "_gazebo/RL_calf_controller/state", 1, &ROSInterfaceManager::RLcalfCallback, this);
+  real_robot_state_sub = nh_.subscribe("/low_state", 1, &ROSInterfaceManager::lowStateCallback, this);
+  sim_robot_state_sub[0] = nh_.subscribe("/" + robot_name + "_gazebo/FR_hip_controller/state", 1, &ROSInterfaceManager::FRhipCallback, this);
+  sim_robot_state_sub[1] = nh_.subscribe("/" + robot_name + "_gazebo/FR_thigh_controller/state", 1, &ROSInterfaceManager::FRthighCallback, this);
+  sim_robot_state_sub[2] = nh_.subscribe("/" + robot_name + "_gazebo/FR_calf_controller/state", 1, &ROSInterfaceManager::FRcalfCallback, this);
+  sim_robot_state_sub[3] = nh_.subscribe("/" + robot_name + "_gazebo/FL_hip_controller/state", 1, &ROSInterfaceManager::FLhipCallback, this);
+  sim_robot_state_sub[4] = nh_.subscribe("/" + robot_name + "_gazebo/FL_thigh_controller/state", 1, &ROSInterfaceManager::FLthighCallback, this);
+  sim_robot_state_sub[5] = nh_.subscribe("/" + robot_name + "_gazebo/FL_calf_controller/state", 1, &ROSInterfaceManager::FLcalfCallback, this);
+  sim_robot_state_sub[6] = nh_.subscribe("/" + robot_name + "_gazebo/RR_hip_controller/state", 1, &ROSInterfaceManager::RRhipCallback, this);
+  sim_robot_state_sub[7] = nh_.subscribe("/" + robot_name + "_gazebo/RR_thigh_controller/state", 1, &ROSInterfaceManager::RRthighCallback, this);
+  sim_robot_state_sub[8] = nh_.subscribe("/" + robot_name + "_gazebo/RR_calf_controller/state", 1, &ROSInterfaceManager::RRcalfCallback, this);
+  sim_robot_state_sub[9] = nh_.subscribe("/" + robot_name + "_gazebo/RL_hip_controller/state", 1, &ROSInterfaceManager::RLhipCallback, this);
+  sim_robot_state_sub[10] = nh_.subscribe("/" + robot_name + "_gazebo/RL_thigh_controller/state", 1, &ROSInterfaceManager::RLthighCallback, this);
+  sim_robot_state_sub[11] = nh_.subscribe("/" + robot_name + "_gazebo/RL_calf_controller/state", 1, &ROSInterfaceManager::RLcalfCallback, this);
 }
 
 void ROSInterfaceManager::publishRobotCmd() {
-  real_low_cmd_pub.publish(robot_cmd);
+  real_robot_cmd_pub.publish(robot_cmd);
   for (int m = 0; m < Config::NUM_OF_JOINTS; m++) {
-    sim_low_cmd_pub[m].publish(robot_cmd.motorCmd[m]);
+    sim_robot_cmd_pub[m].publish(robot_cmd.motorCmd[m]);
   }
 }
 

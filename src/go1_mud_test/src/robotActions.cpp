@@ -1,12 +1,11 @@
 #include "robotActions.hpp"
 
 
-constexpr double RobotStandAction::STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+const double RobotStandAction::STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3
-}
-
-constexpr double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+};
+const double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
     -0.5, 1.15, -2.7, -0.5, 1.15, -2.7,
     -0.5, 1.15, -2.7, -0.5, 1.15, -2.7
 };
@@ -14,7 +13,7 @@ constexpr double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOI
 
 /** INITIALIZATION ACTION */
 BT::NodeStatus RobotInitializationAction::robotStateReceived() {
-    unitree_legged_msgs::LowState low_state = ros_manager.getLowState();
+    unitree_legged_msgs::LowState low_state = ros_manager.getRobotState();
 
     double FR_Calf = low_state.motorState[2].q;
     double FL_Calf = low_state.motorState[5].q;
@@ -57,7 +56,7 @@ void RobotInitializationAction::registerNodes(BT::BehaviorTreeFactory &factory)
 
 /** LIE DOWN ACTION */
 
-void RobotLieDownAction::handleKeyPressed(bool pressed) override {
+void RobotLieDownAction::handleKeyPressed(bool pressed) {
     action_service_manager.setLieDownKeyPressed(pressed);
 }
 
@@ -76,7 +75,7 @@ void RobotLieDownAction::onHalted() {
 
 
 /** STAND ACTION */
-void RobotStandAction::handleKeyPressed(bool pressed) override {
+void RobotStandAction::handleKeyPressed(bool pressed) {
     action_service_manager.setStandKeyPressed(pressed);
 }
 

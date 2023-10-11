@@ -15,9 +15,11 @@ class ROSInterfaceManager {
     public:
         static ROSInterfaceManager& getInstance();
         static ROSInterfaceManager& getInstance(ros::NodeHandle& nh, std::string rname);
-
+        
         unitree_legged_msgs::LowState getRobotState();
+        void initialize(ros::NodeHandle& nh, std::string rname);
         void publishRobotCmd();
+        void setRobotCmd(int joint, double pos);
         void setRobotParams();
 
     private:
@@ -26,13 +28,13 @@ class ROSInterfaceManager {
         ROSInterfaceManager(const ROSInterfaceManager&) = delete;
         ROSInterfaceManager& operator=(const ROSInterfaceManager&) = delete;
 
-        bool class_initialized = false;
-        std::string robot_name;
+        static bool class_initialized;
         
         ros::NodeHandle nh_;
         ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS];
         ros::Subscriber imu_sub, real_robot_state_sub, sim_robot_state_sub[Config::NUM_OF_JOINTS];
 
+        std::string robot_name;
         sensor_msgs::JointState joint_state;
         unitree_legged_msgs::LowCmd robot_cmd;
         unitree_legged_msgs::LowState robot_state;

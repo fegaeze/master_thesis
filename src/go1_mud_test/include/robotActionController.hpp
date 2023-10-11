@@ -25,20 +25,19 @@ class RobotActionController : public BT::StatefulActionNode {
         virtual void onHalted() override = 0;
 
     protected:
-        int duration_counter = 0;
+    
         ActionServiceManager& action_service_manager;
-
-        virtual handleKeyPressed(bool pressed) override = 0;
+        virtual void handleKeyPressed(bool pressed) = 0;
 
         void actionHalted();
         BT::NodeStatus actionStart();
-        BT::NodeStatus actionRunnning(const double *targetPos);
+        BT::NodeStatus actionRunning(const double *targetPos);
 
     private:
         static constexpr int MOVEMENT_DURATION_MS = 5 * Config::LOOP_RATE_HZ;
-        static int duration_counter = 0;
         static unitree_legged_msgs::LowState last_known_state;
 
+        int duration_counter = 0;
         ROSInterfaceManager& ros_manager;
 
         void interpolateJoints(const double *targetPos);

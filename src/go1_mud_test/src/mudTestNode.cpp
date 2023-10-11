@@ -20,12 +20,12 @@ int main(int argc, char **argv) {
     ROSInterfaceManager& ros_manager = ROSInterfaceManager::getInstance(nh, rname);
 
     BT::BehaviorTreeFactory factory;
-    RobotInitializationAction initialized;
+    RobotInitializationAction robot_init_action;
 
     factory.registerNodeType<RobotLieDownAction>("RobotLieDownAction");
     factory.registerNodeType<RobotStandAction>("RobotStandAction");
     action_service_manager.registerNodes(factory);
-    robot_initialized.registerNodes(factory);
+    robot_init_action.registerNodes(factory);
 
     std::string package_name = "go1_mud_test";
     std::string relative_file_path = "/behavior_trees/mud_test.xml";
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
     while(ros::ok()) {
         tree.tickOnce();
-        ros_manager.publishLowCmd();
+        ros_manager.publishRobotCmd();
         ros::spinOnce();
         rate.sleep();
     }

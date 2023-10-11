@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(gazebo REQUIRED)
 
 add_service_files(
   FILES
@@ -30,47 +29,35 @@ generate_messages(
 )
 
 catkin_package(
-  INCLUDE_DIRS include
   CATKIN_DEPENDS 
-  unitree_legged_msgs 
+  unitree_legged_msgs
   message_runtime
 )
 
 include_directories(
   include
-  ${Boost_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${GAZEBO_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
 
-link_directories(${GAZEBO_LIBRARY_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
-
-add_library(actionServiceManager src/actionServiceManager.cpp)
-target_link_libraries(actionServiceManager ${catkin_LIBRARIES} ${EXTRA_LIBS})
-
-add_library(config src/config.cpp)
-target_link_libraries(config ${catkin_LIBRARIES} ${EXTRA_LIBS})
-
 add_library(robotActionController src/robotActionController.cpp)
-add_dependencies(robotActionController unitree_legged_msgs_gencpp)
-target_link_libraries(robotActionController ${catkin_LIBRARIES} ${EXTRA_LIBS})
+add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(robotActions src/robotActions.cpp)
-target_link_libraries(robotActions ${catkin_LIBRARIES} ${EXTRA_LIBS})
+add_dependencies(robotActions ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(rosInterfaceManager src/rosInterfaceManager.cpp)
-add_dependencies(rosInterfaceManager unitree_legged_msgs_gencpp)
-target_link_libraries(rosInterfaceManager ${catkin_LIBRARIES} ${EXTRA_LIBS})
+add_dependencies(rosInterfaceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
+add_library(actionServiceManager src/actionServiceManager.cpp)
+add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(go1_mud_test_node src/mudTestNode.cpp)
+add_dependencies(go1_mud_test_node ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(go1_mud_test_node 
   ${catkin_LIBRARIES} 
-  ${EXTRA_LIBS} 
   actionServiceManager 
-  config 
   robotActionController 
   robotActions 
   rosInterfaceManager

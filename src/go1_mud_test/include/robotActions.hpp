@@ -40,7 +40,7 @@ class RobotStandAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static constexpr double STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const double STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -54,7 +54,7 @@ class RobotLieDownAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static constexpr double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
         void handleKeyPressed(bool pressed) override;
 };
 

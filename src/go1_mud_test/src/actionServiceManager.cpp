@@ -2,27 +2,31 @@
 #include "config.hpp"
 
 
+bool ActionServiceManager::class_initialized = false;
+
 ActionServiceManager& ActionServiceManager::getInstance() {
   static ActionServiceManager instance;
   return instance;
 }
 
-ActionServiceManager& ActionServiceManager::(ros::NodeHandle& nh, std::string robot_name) {
+ActionServiceManager& ActionServiceManager::getInstance(ros::NodeHandle& nh, std::string rname) {
+    static ActionServiceManager instance;
     if (!class_initialized) {
-        static ActionServiceManager instance;
-        nh_ = nh;
+        instance.initialize(nh, rname);
         class_initialized = true;
-        robot_name = robot_name;
-        action_service_server = nh_.advertiseService(robot_name_ + "/action", &ActionServiceManager::actionCallback, this);
-        return instance;
     }
+    return instance;
+}
+
+void ActionServiceManager::initialize(ros::NodeHandle& nh, std::string rname) {
+    nh_ = nh;
+    robot_name = rname;
+    action_service_server = nh_.advertiseService(robot_name + "/action", &ActionServiceManager::actionCallback, this);
 }
 
 bool ActionServiceManager::actionCallback(
     go1_mud_test::ActionService::Request& req,
     go1_mud_test::ActionService::Response& res) {
-    std::string action = req.action;
-
     res.success = true;  
     if (req.action == Config::RobotAction::STAND) {
         setStandKeyPressed(true);      

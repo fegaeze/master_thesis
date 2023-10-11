@@ -1,14 +1,12 @@
-#pragma once
-
 #include "robotActionController.hpp"
 
 
-unitree_legged_msgs::LowState RobotActionController::lastKnownState{};
+unitree_legged_msgs::LowState RobotActionController::last_known_state{};
 
-void RobotActionController:interpolateJoints(const double *targetPos) {
+void RobotActionController::interpolateJoints(const double *targetPos) {
     double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
     for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
-        robot_cmd.motorCmd[j].q = (lastKnownState.motorState[j].q * (1 - percent)) + (targetPos[j] * percent);
+        ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
     }
 }
 
