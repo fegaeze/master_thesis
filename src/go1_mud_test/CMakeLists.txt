@@ -27,9 +27,8 @@ generate_messages(
 )
 
 catkin_package(
-  INCLUDE_DIRS include
   CATKIN_DEPENDS 
-  unitree_legged_msgs 
+  unitree_legged_msgs
   message_runtime
 )
 
@@ -57,7 +56,6 @@ add_dependencies(go1_mud_test_node ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_ge
 target_link_libraries(go1_mud_test_node 
   ${catkin_LIBRARIES} 
   actionServiceManager 
-  robotActionController 
   robotActions 
   rosInterfaceManager
 )

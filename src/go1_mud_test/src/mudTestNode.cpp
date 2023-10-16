@@ -2,7 +2,6 @@
 
 #include "actionServiceManager.hpp"
 #include "rosInterfaceManager.hpp"
-#include "robotActionController.hpp"
 #include "robotActions.hpp"
 #include "config.hpp"
 

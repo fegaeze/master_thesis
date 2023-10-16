@@ -31,10 +31,10 @@ fi
 # Run rosdep install
 rosdep install --from-paths "$workspace_dir" --ignore-src --rosdistro noetic
 
-# Build the workspace
-catkin_make
+# # Build the workspace
+# catkin_make
 
-# Source the workspace
-source devel/setup.bash
+# # Source the workspace
+# source devel/setup.bash
 
 echo "Setup complete!"

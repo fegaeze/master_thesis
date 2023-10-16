@@ -9,5 +9,5 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>rosbridge_suite</depend>
+  <depend>rosbridge_server</depend>
 </package>
