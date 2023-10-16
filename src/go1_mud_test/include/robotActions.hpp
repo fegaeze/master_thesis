@@ -1,14 +1,5 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <cmath>
-#include <stdexcept>
-#include <string>
-#include <tf/transform_listener.h>
-#include <vector>
-
-#include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
 
 #include "robotActionController.hpp"
@@ -56,18 +47,4 @@ class RobotLieDownAction : public RobotActionController {
     private:
         static const double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
         void handleKeyPressed(bool pressed) override;
-};
-
-
-class MudTest {
-    private:
-        double hipLength_, thighLength_, calfLength_;
-        tf::Vector3 calculateCoGPosition(const std::vector<tf::Vector3>& feet, int liftedLeg);
-        std::vector<double> ikSolver(const Eigen::Matrix4d& footPose, bool isRight=true);
-        tf::TransformListener listener;
-        double triangleArea(const tf::Vector3& p1, const tf::Vector3& p2, const tf::Vector3& p3);
-
-    public:
-        MudTest();
-        std::vector<double> getCOGJointPositions(int liftedLeg=0);
 };

@@ -16,8 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   unitree_legged_msgs
 )
 
-find_package(Eigen3 REQUIRED)
-
 add_service_files(
   FILES
   ActionService.srv
@@ -37,7 +35,6 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
 
@@ -46,6 +43,7 @@ add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME
 
 add_library(robotActions src/robotActions.cpp)
 add_dependencies(robotActions ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(robotActions robotActionController)
 
 add_library(rosInterfaceManager src/rosInterfaceManager.cpp)
 add_dependencies(rosInterfaceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
@@ -58,7 +56,6 @@ add_dependencies(go1_mud_test_node ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_ge
 target_link_libraries(go1_mud_test_node 
   ${catkin_LIBRARIES} 
   actionServiceManager 
-  robotActionController 
   robotActions 
   rosInterfaceManager
 )

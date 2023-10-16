@@ -5,7 +5,6 @@
 #include "robotActions.hpp"
 #include "config.hpp"
 
-
 int main(int argc, char **argv) {
     ros::init(argc, argv, "go1_mud_test_node");
     ros::NodeHandle nh;
