@@ -4,7 +4,7 @@
             <Sequence>
                 <RobotStateReceived name="robot_state_received?"/>
                 <Fallback>
-                    <RobotParamInitialized name="robot_param_initialized?"/>
+                    <RobotInitialized name="robot_initialized?"/>
                     <RobotInitialization name="robot_initialization_action" />
                 </Fallback>
             </Sequence>
@@ -12,12 +12,12 @@
             <ReactiveFallback>
                 <ReactiveSequence>
                     <StandKeyPressed name="go1_stand_key_pressed?" />
-                    <Go1Stand name="go1_stand_action"/>
+                    <RobotStandAction name="go1_stand_action"/>
                 </ReactiveSequence>
 
                 <ReactiveSequence>
                     <LieDownKeyPressed name="go1_lie_down_pressed?"/>
-                    <Go1LieDown name="go1_lie_down_action"/>
+                    <RobotLieDownAction name="go1_lie_down_action"/>
                 </ReactiveSequence>
             </ReactiveFallback>
             

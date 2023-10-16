@@ -1,15 +1,18 @@
 #pragma once
 
 #include <ros/ros.h>
+
 #include "behaviortree_cpp/bt_factory.h"
 #include "go1_mud_test/ActionService.h"
 
-class ActionServer {
+class ActionServiceManager {
     public:
-        static ActionServer& getInstance();
-    
-        void initialize(ros::NodeHandle& nh, std::string robot_name);
+        static ActionServiceManager& getInstance();
+        static ActionServiceManager& getInstance(ros::NodeHandle& nh, std::string robot_name);
+
+        void initialize(ros::NodeHandle& nh, std::string rname);
         void registerNodes(BT::BehaviorTreeFactory &factory);
+
         void setStandKeyPressed(bool pressed);
         void setLieDownKeyPressed(bool pressed);
         void setFrRaiseKeyPressed(bool pressed);
@@ -18,21 +21,21 @@ class ActionServer {
         void setRlRaiseKeyPressed(bool pressed);
 
     private:
-        ActionServer() : initialized_(false) {};
-        ActionServer(const ActionServer&) = delete;
-        ActionServer& operator=(const ActionServer&) = delete;
+        ActionServiceManager() {};
+        ActionServiceManager(const ActionServiceManager&) = delete;
+        ActionServiceManager& operator=(const ActionServiceManager&) = delete;
 
-        bool initialized_;
-        std::string robot_name_;
-        bool lieDownKeyPressed_ = false;
-        bool standKeyPressed_ = false;
-        bool frRaiseKeyPressed_ = false;
-        bool flRaiseKeyPressed_ = false;
-        bool rrRaiseKeyPressed_ = false;
-        bool rlRaiseKeyPressed_ = false;
+        static bool class_initialized;
+        std::string robot_name;
+        bool lie_down_key_pressed = false;
+        bool stand_key_pressed = false;
+        bool fr_raise_key_pressed = false;
+        bool fl_raise_key_pressed = false;
+        bool rr_raise_key_pressed = false;
+        bool rl_raise_key_pressed = false;
 
         ros::NodeHandle nh_;
-        ros::ServiceServer robotActionServer_;
+        ros::ServiceServer action_service_server;
 
         bool actionCallback(
             go1_mud_test::ActionService::Request& req,

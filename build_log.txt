@@ -1,0 +1,87 @@
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_HighState
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target sensor_msgs_generate_messages_cpp
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_MotorCmd
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_LED
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_MotorState
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_BmsState
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_LowCmd
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_HighCmd
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_BmsCmd
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_Cartesian
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_IMU
+[  0%] Built target _unitree_legged_msgs_generate_messages_check_deps_LowState
+[  0%] Built target sensor_msgs_generate_messages_py
+[  0%] Built target geometry_msgs_generate_messages_py
+[  0%] Built target std_msgs_generate_messages_py
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+[  0%] Built target geometry_msgs_generate_messages_nodejs
+[  0%] Built target std_msgs_generate_messages_nodejs
+[  0%] Built target geometry_msgs_generate_messages_lisp
+[  0%] Built target sensor_msgs_generate_messages_lisp
+[  0%] Built target std_msgs_generate_messages_lisp
+[  0%] Built target std_msgs_generate_messages_eus
+[  0%] Built target sensor_msgs_generate_messages_eus
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target rosgraph_msgs_generate_messages_py
+[  0%] Built target rosgraph_msgs_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_nodejs
+[  0%] Built target roscpp_generate_messages_py
+[  0%] Built target rosgraph_msgs_generate_messages_nodejs
+[  0%] Built target roscpp_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_cpp
+Scanning dependencies of target actionServiceManager
+[  1%] Building CXX object go1_mud_test/CMakeFiles/actionServiceManager.dir/src/actionServiceManager.cpp.o
+Scanning dependencies of target robotActions
+[  2%] Building CXX object go1_mud_test/CMakeFiles/robotActions.dir/src/robotActions.cpp.o
+[  3%] Linking CXX shared library /home/parallels/Documents/master_thesis/devel/lib/libactionServiceManager.so
+[  3%] Built target actionServiceManager
+[  3%] Built target _go1_mud_test_generate_messages_check_deps_ActionService
+[ 17%] Built target unitree_legged_msgs_generate_messages_cpp
+[ 33%] Built target unitree_legged_msgs_generate_messages_py
+[ 47%] Built target unitree_legged_msgs_generate_messages_nodejs
+[ 61%] Built target unitree_legged_msgs_generate_messages_lisp
+[ 76%] Built target unitree_legged_msgs_generate_messages_eus
+[ 76%] Built target unitree_legged_msgs_gencpp
+[ 79%] Built target ros_udp
+Scanning dependencies of target rosInterfaceManager
+[ 80%] Building CXX object go1_mud_test/CMakeFiles/rosInterfaceManager.dir/src/rosInterfaceManager.cpp.o
+[ 82%] Linking CXX shared library /home/parallels/Documents/master_thesis/devel/lib/librosInterfaceManager.so
+[ 82%] Built target rosInterfaceManager
+[ 83%] Linking CXX shared library /home/parallels/Documents/master_thesis/devel/lib/librobotActions.so
+[ 83%] Built target robotActions
+Scanning dependencies of target robotActionController
+[ 84%] Building CXX object go1_mud_test/CMakeFiles/robotActionController.dir/src/robotActionController.cpp.o
+[ 85%] Linking CXX shared library /home/parallels/Documents/master_thesis/devel/lib/librobotActionController.so
+[ 85%] Built target robotActionController
+[ 87%] Built target go1_mud_test_generate_messages_lisp
+[ 89%] Built target go1_mud_test_generate_messages_py
+[ 91%] Built target go1_mud_test_generate_messages_nodejs
+[ 93%] Built target go1_mud_test_generate_messages_eus
+[ 94%] Built target go1_mud_test_generate_messages_cpp
+[ 94%] Built target unitree_legged_msgs_generate_messages
+[ 97%] Built target unitree_legged_control
+Scanning dependencies of target go1_mud_test_node
+[ 98%] Building CXX object go1_mud_test/CMakeFiles/go1_mud_test_node.dir/src/mudTestNode.cpp.o
+[100%] Linking CXX executable /home/parallels/Documents/master_thesis/devel/lib/go1_mud_test/go1_mud_test_node
+/usr/bin/ld: cannot find -lconfig
+collect2: error: ld returned 1 exit status
+make[2]: *** [go1_mud_test/CMakeFiles/go1_mud_test_node.dir/build.make:184: /home/parallels/Documents/master_thesis/devel/lib/go1_mud_test/go1_mud_test_node] Error 1
+make[1]: *** [CMakeFiles/Makefile2:2613: go1_mud_test/CMakeFiles/go1_mud_test_node.dir/all] Error 2
+make: *** [Makefile:141: all] Error 2
+Base path: /home/parallels/Documents/master_thesis
+Source space: /home/parallels/Documents/master_thesis/src
+Build space: /home/parallels/Documents/master_thesis/build
+Devel space: /home/parallels/Documents/master_thesis/devel
+Install space: /home/parallels/Documents/master_thesis/install
+####
+#### Running command: "make cmake_check_build_system" in "/home/parallels/Documents/master_thesis/build"
+####
+####
+#### Running command: "make -j2 -l2" in "/home/parallels/Documents/master_thesis/build"
+####
+Invoking "make -j2 -l2" failed
