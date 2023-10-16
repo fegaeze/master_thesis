@@ -16,9 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   unitree_legged_msgs
 )
 
-find_package(Eigen3 REQUIRED)
-find_package(gazebo REQUIRED)
-
 add_service_files(
   FILES
   ActionService.srv
@@ -38,15 +35,9 @@ catkin_package(
 
 include_directories(
   include
-  ${Boost_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  ${GAZEBO_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
-
-link_directories(${GAZEBO_LIBRARY_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
 add_library(robotActionController src/robotActionController.cpp)
 add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
