@@ -29,6 +29,8 @@ class ROSInterfaceManager {
         ROSInterfaceManager& operator=(const ROSInterfaceManager&) = delete;
 
         static bool class_initialized;
+        static unitree_legged_msgs::LowCmd robot_cmd;
+        static unitree_legged_msgs::LowState robot_state;
         
         ros::NodeHandle nh_;
         ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS];
@@ -36,8 +38,6 @@ class ROSInterfaceManager {
 
         std::string robot_name;
         sensor_msgs::JointState joint_state;
-        unitree_legged_msgs::LowCmd robot_cmd;
-        unitree_legged_msgs::LowState robot_state;
         
         void setPublishers();
         void setSubscriptions();

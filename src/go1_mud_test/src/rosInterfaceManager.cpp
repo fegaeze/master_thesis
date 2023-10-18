@@ -12,6 +12,8 @@ using namespace std::chrono_literals;
 
 
 bool ROSInterfaceManager::class_initialized = false;
+unitree_legged_msgs::LowCmd ROSInterfaceManager::robot_cmd = unitree_legged_msgs::LowCmd();
+unitree_legged_msgs::LowState ROSInterfaceManager::robot_state = unitree_legged_msgs::LowState();
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
@@ -101,14 +103,14 @@ void ROSInterfaceManager::setRobotParams() {
   }
 
   for (int i = 0; i < 4; i++) {
-    robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 0.05;
-    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.7;
 
-    robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 0.05;
-    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.7;
 
-    robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 0.05;
-    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.05;
+    robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.7;
   }
 }
 

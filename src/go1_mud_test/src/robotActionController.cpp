@@ -1,14 +1,7 @@
 #include "robotActionController.hpp"
 
 
-unitree_legged_msgs::LowState RobotActionController::last_known_state{};
-
-void RobotActionController::interpolateJoints(const double *targetPos) {
-    double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
-    for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
-        ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
-    }
-}
+unitree_legged_msgs::LowState RobotActionController::last_known_state = unitree_legged_msgs::LowState();
 
 BT::NodeStatus RobotActionController::actionStart() {
     last_known_state = ros_manager.getRobotState();
@@ -29,4 +22,11 @@ BT::NodeStatus RobotActionController::actionRunning(const double *targetPos) {
 void RobotActionController::actionHalted() {
     duration_counter = 0;
     handleKeyPressed(false);
+}
+
+void RobotActionController::interpolateJoints(const double *targetPos) {
+    double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
+    for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
+        ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
+    }
 }

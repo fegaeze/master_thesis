@@ -26,13 +26,13 @@ class ActionServiceManager {
         ActionServiceManager& operator=(const ActionServiceManager&) = delete;
 
         static bool class_initialized;
+        static bool lie_down_key_pressed;
+        static bool stand_key_pressed;
+        static bool fr_raise_key_pressed;
+        static bool fl_raise_key_pressed;
+        static bool rr_raise_key_pressed;
+        static bool rl_raise_key_pressed;
         std::string robot_name;
-        bool lie_down_key_pressed = false;
-        bool stand_key_pressed = false;
-        bool fr_raise_key_pressed = false;
-        bool fl_raise_key_pressed = false;
-        bool rr_raise_key_pressed = false;
-        bool rl_raise_key_pressed = false;
 
         ros::NodeHandle nh_;
         ros::ServiceServer action_service_server;

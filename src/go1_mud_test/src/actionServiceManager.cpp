@@ -3,6 +3,12 @@
 
 
 bool ActionServiceManager::class_initialized = false;
+bool ActionServiceManager::lie_down_key_pressed = false;
+bool ActionServiceManager::stand_key_pressed = false;
+bool ActionServiceManager::fr_raise_key_pressed = false;
+bool ActionServiceManager::fl_raise_key_pressed = false;
+bool ActionServiceManager::rr_raise_key_pressed = false;
+bool ActionServiceManager::rl_raise_key_pressed = false;
 
 ActionServiceManager& ActionServiceManager::getInstance() {
   static ActionServiceManager instance;

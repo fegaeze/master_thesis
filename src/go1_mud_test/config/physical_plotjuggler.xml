@@ -1,25 +1,25 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
- <tabbed_widget name="Main Window" parent="main_window">
+ <tabbed_widget parent="main_window" name="Main Window">
   <Tab containers="1" tab_name="tab1">
    <Container>
-    <DockSplitter orientation="-" count="2" sizes="0.5;0.5">
+    <DockSplitter orientation="-" sizes="0.5;0.5" count="2">
      <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" style="Lines" flip_x="false">
-       <range left="0.000000" right="42.001245" bottom="-2.839486" top="1.512058"/>
+      <plot flip_x="false" flip_y="false" mode="TimeSeries" style="Lines">
+       <range left="0.000000" right="42.754809" bottom="-0.100000" top="0.100000"/>
        <limitY/>
-       <curve name="/low_cmd/motorCmd.0/q" color="#1f77b4"/>
-       <curve name="/low_cmd/motorCmd.1/q" color="#d62728"/>
-       <curve name="/low_cmd/motorCmd.2/q" color="#1ac938"/>
+       <curve color="#1f77b4" name="/low_cmd/motorCmd.0/q"/>
+       <curve color="#d62728" name="/low_cmd/motorCmd.1/q"/>
+       <curve color="#1ac938" name="/low_cmd/motorCmd.2/q"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" style="Lines" flip_x="false">
-       <range left="0.000000" right="42.001245" bottom="-2.839569" top="1.512060"/>
+      <plot flip_x="false" flip_y="false" mode="TimeSeries" style="Lines">
+       <range left="0.000000" right="42.754809" bottom="-2.815660" top="1.308384"/>
        <limitY/>
-       <curve name="/low_state/motorState.0/q" color="#ff7f0e"/>
-       <curve name="/low_state/motorState.1/q" color="#f14cc1"/>
-       <curve name="/low_state/motorState.2/q" color="#9467bd"/>
+       <curve color="#ff7f0e" name="/low_state/motorState.0/q"/>
+       <curve color="#f14cc1" name="/low_state/motorState.1/q"/>
+       <curve color="#9467bd" name="/low_state/motorState.2/q"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -32,7 +32,7 @@
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <default delimiter="0" time_axis=""/>
+   <default time_axis="" delimiter="0"/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS bags">

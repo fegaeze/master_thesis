@@ -6,8 +6,8 @@ const double RobotStandAction::STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3
 };
 const double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
-    -0.5, 1.15, -2.7, -0.5, 1.15, -2.7,
-    -0.5, 1.15, -2.7, -0.5, 1.15, -2.7
+    -0.5, 1.15, -2.7, 0.5, 1.15, -2.7,
+    -0.5, 1.15, -2.7, 0.5, 1.15, -2.7
 };
 
 
