@@ -1,7 +1,7 @@
 <launch>
     <arg name="debug" default="false"/>
-    <arg name="gui" default="false"/>
-    <arg name="headless" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
     <arg name="paused" default="false"/>
     <arg name="simulation" default="true"/>
     <arg name="rname" default="go1"/>

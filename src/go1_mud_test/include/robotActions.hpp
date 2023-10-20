@@ -31,7 +31,7 @@ class RobotStandAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const double STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const std::vector<double> STAND_JOINT_POSITIONS;
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -45,7 +45,7 @@ class RobotLieDownAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const std::vector<double> LIE_DOWN_JOINT_POSITIONS;
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -59,7 +59,7 @@ class RobotFrRaiseAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const double FR_RAISE_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const std::vector<double> FR_RAISE_JOINT_POSITIONS;
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -73,5 +73,6 @@ class RobotGoToCogAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static double cog_joint_positions;
+        static std::vector<double> cog_joint_positions;
+        void handleKeyPressed(bool pressed) override;
 };

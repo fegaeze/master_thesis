@@ -3,12 +3,13 @@
 
 unitree_legged_msgs::LowState RobotActionController::last_known_state = unitree_legged_msgs::LowState();
 
+
 BT::NodeStatus RobotActionController::actionStart() {
     last_known_state = ros_manager.getRobotState();
     return BT::NodeStatus::RUNNING;
 }
 
-BT::NodeStatus RobotActionController::actionRunning(const double *targetPos) {
+BT::NodeStatus RobotActionController::actionRunning(const std::vector<double>& targetPos) {
     interpolateJoints(targetPos);
     duration_counter += 1;
     if(duration_counter >= MOVEMENT_DURATION_MS) {
@@ -19,13 +20,17 @@ BT::NodeStatus RobotActionController::actionRunning(const double *targetPos) {
     return BT::NodeStatus::RUNNING;
 }
 
+BT::NodeStatus RobotActionController::actionRunning(std::vector<double>& targetPos) {
+    return actionRunning(const_cast<const std::vector<double>&>(targetPos));
+}
+
 void RobotActionController::actionHalted() {
     duration_counter = 0;
     handleKeyPressed(false);
 }
 
 
-double RobotActionController::calculateFeetArea(const tf::Vector3& p1, const tf::Vector3& p2, const tf::Vector3& p3) {
+double RobotActionController::calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3) {
     double a = sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
     double b = sqrt(pow(p2.x() - p3.x(), 2) + pow(p2.y() - p3.y(), 2) + pow(p2.z() - p3.z(), 2));
     double c = sqrt(pow(p3.x() - p1.x(), 2) + pow(p3.y() - p1.y(), 2) + pow(p3.z() - p1.z(), 2));
@@ -34,8 +39,8 @@ double RobotActionController::calculateFeetArea(const tf::Vector3& p1, const tf:
     return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
-tf::Vector3 RobotActionController::calculateCoGPosition(const std::vector<tf::Vector3>& feet, int liftedLeg) {
-    tf::Vector3 cog;
+tf2::Vector3 RobotActionController::calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg) {
+    tf2::Vector3 cog;
     double totalArea = 0.0;
 
     int size = feet.size();
@@ -52,7 +57,7 @@ tf::Vector3 RobotActionController::calculateCoGPosition(const std::vector<tf::Ve
         double area = calculateFeetArea(feet[i], feet[(i + 1) % size], feet[(i + 2) % size]);
         totalArea += area;
 
-        tf::Vector3 centroid(0.0, 0.0, 0.0);
+        tf2::Vector3 centroid(0.0, 0.0, 0.0);
 
         centroid.setX((feet[i].x() + feet[(i + 1) % size].x() + feet[(i + 2) % size].x()) / 3.0);
         centroid.setY((feet[i].y() + feet[(i + 1) % size].y() + feet[(i + 2) % size].y()) / 3.0);
@@ -86,14 +91,14 @@ std::vector<double> RobotActionController::ikSolver(const Eigen::Matrix4d& footP
     double yPos_squared = footPositionY_ * footPositionY_;
     double zPos_squared = footPositionZ_ * footPositionZ_;
 
-    double hipLength_squared = hipLength_ * hipLength_;
-    double thighLength_squared = thighLength_ * thighLength_;
-    double calfLength_squared = calfLength_ * calfLength_;
+    double hipLength_squared = Config::HIP_LENGTH * Config::HIP_LENGTH;
+    double thighLength_squared = Config::THIGH_LENGTH * Config::THIGH_LENGTH;
+    double calfLength_squared = Config::CALF_LENGTH * Config::CALF_LENGTH;
 
     std::vector<double> jointAngles{0, 0, 0};
 
     // Theta One    
-    double alpha = std::acos(hipLength_ / std::sqrt(yPos_squared + zPos_squared));
+    double alpha = std::acos(Config::HIP_LENGTH / std::sqrt(yPos_squared + zPos_squared));
     double beta = std::atan2(footPositionZ_, footPositionY_);
     if (isRight) {
         jointAngles.at(0) = M_PI - alpha + beta;
@@ -105,22 +110,22 @@ std::vector<double> RobotActionController::ikSolver(const Eigen::Matrix4d& footP
     double gamma =
         std::acos((hipLength_squared + thighLength_squared + calfLength_squared -
                     xPos_squared - yPos_squared - zPos_squared) /
-                    (2 * thighLength_ * calfLength_));
+                    (2 * Config::THIGH_LENGTH * Config::CALF_LENGTH));
     jointAngles.at(2) = gamma - M_PI;
 
     // Theta Two
     double z_prime = -std::sqrt(yPos_squared + zPos_squared - hipLength_squared);
-    double psi = std::atan2(calfLength_ * std::sin(jointAngles.at(2)),
-                            thighLength_ + calfLength_ * std::cos(jointAngles.at(2)));
+    double psi = std::atan2(Config::CALF_LENGTH * std::sin(jointAngles.at(2)),
+                            Config::THIGH_LENGTH + Config::CALF_LENGTH * std::cos(jointAngles.at(2)));
     jointAngles.at(1) = M_PI - psi + std::atan2(footPositionX_, z_prime);
 
 
     for (int i = 0; i < 3; i++) {
         if (jointAngles.at(i) >= M_PI) {
-        jointAngles.at(i) -= 2 * M_PI;
+            jointAngles.at(i) -= 2 * M_PI;
         }
         if (jointAngles.at(i) <= -M_PI) {
-        jointAngles.at(i) += 2 * M_PI;
+            jointAngles.at(i) += 2 * M_PI;
         }
     }
 
@@ -129,24 +134,27 @@ std::vector<double> RobotActionController::ikSolver(const Eigen::Matrix4d& footP
 
 std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
 
-    std::vector<std::string> hipNames = {"/FR_hip", "/FL_hip", "/RR_hip", "/RL_hip"};
-    std::vector<std::string> feetNames = {"/FR_foot", "/FL_foot", "/RR_foot", "/RL_foot"};
+    std::vector<std::string> hipNames = {"FR_hip", "FL_hip", "RR_hip", "RL_hip"};
+    std::vector<std::string> feetNames = {"FR_foot", "FL_foot", "RR_foot", "RL_foot"};
 
     // Get positions of the robot's feet at standing pose (wrt trunk).
-    std::vector<tf::Vector3> initialfeetPositions;
-    for (int i = 0; i < feetNames.size(); i++)
-    {
-        tf::StampedTransform transform;
+    std::vector<tf2::Vector3> initialfeetPositions;
+    for (int i = 0; i < feetNames.size(); i++) {
+        geometry_msgs::TransformStamped transform;
         try {
-            listener.lookupTransform("/trunk", feetNames[i], ros::Time(0), transform);
-            initialfeetPositions.push_back(transform.getOrigin());
-        } catch (tf::TransformException ex) {
+            transform = buffer.lookupTransform("trunk", feetNames[i], ros::Time(0));
+
+            tf2::Vector3 translation;
+            tf2::fromMsg(transform.transform.translation, translation);
+            initialfeetPositions.push_back(translation);
+        } catch (tf2::TransformException& ex) {
             ROS_ERROR("%s", ex.what());
         }
     }
 
+
     // Using the robot's initial feet position, get the robot's best point for stability
-    tf::Vector3 cog = calculateCoGPosition(initialfeetPositions, liftedLeg);
+    tf2::Vector3 cog = calculateCoGPosition(initialfeetPositions, liftedLeg);
     
     // Having gotten what CoG is, create a transformation matrix of each feet to the trunk. 
     // With this trunk being the new calculated CoG position. We only move by x & y
@@ -165,13 +173,17 @@ std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
     // Get transformations matrix of each feet relative to hip.
     // Kinematics equations are based on this :)
     std::vector<Eigen::Matrix4d> T_foot_hip_list;
-    for (int i = 0; i < hipNames.size(); i++) {
-        tf::StampedTransform transform;
-        try {
-            listener.lookupTransform("/trunk", hipNames[i], ros::Time(0), transform);
 
-            tf::Vector3 translation = transform.getOrigin();
-            tf::Quaternion rotation = transform.getRotation();
+    for (int i = 0; i < hipNames.size(); i++) {
+        geometry_msgs::TransformStamped transform;
+        try {
+            transform = buffer.lookupTransform("trunk", hipNames[i], ros::Time(0));
+
+            tf2::Vector3 translation;
+            tf2::fromMsg(transform.transform.translation, translation);
+
+            tf2::Quaternion rotation;
+            tf2::fromMsg(transform.transform.rotation, rotation);
 
             Eigen::Quaterniond eigenRotation(rotation.w(), rotation.x(), rotation.y(), rotation.z());
             Eigen::Vector3d eigenTranslation(translation.x(), translation.y(), translation.z());
@@ -185,7 +197,7 @@ std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
             Eigen::Matrix4d T_foot_hip = T_trunk_hip * T_foot_trunk_list[i];
 
             T_foot_hip_list.push_back(T_foot_hip);
-        } catch (tf::TransformException ex) {
+        } catch (tf2::TransformException& ex) {
             ROS_ERROR("%s", ex.what());
         }
     }
@@ -199,7 +211,7 @@ std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
         if (i == 1 || i == 3) {
             solverRes = ikSolver(T_foot_hip_list[i], false);
         } else {
-            solverRes = ikSolver(T_foot_hip_list[i]);
+            solverRes = ikSolver(T_foot_hip_list[i], true);
         }
 
         joint_angles.insert(joint_angles.end(), solverRes.begin(), solverRes.end());
@@ -208,9 +220,13 @@ std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
     return joint_angles;
 }
 
-void RobotActionController::interpolateJoints(const double *targetPos) {
+void RobotActionController::interpolateJoints(const std::vector<double>& targetPos) {
     double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
     for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
         ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
     }
+}
+
+void RobotActionController::interpolateJoints(std::vector<double>& targetPos) {
+    return interpolateJoints(const_cast<const std::vector<double>&>(targetPos));
 }

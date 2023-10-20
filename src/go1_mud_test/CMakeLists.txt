@@ -12,9 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   robot_state_publisher
   roscpp
-  tf
+  tf2_geometry_msgs
+  tf2_ros
   unitree_legged_msgs
 )
+
+find_package(Eigen3 REQUIRED)
 
 add_service_files(
   FILES
@@ -36,6 +39,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(robotActionController src/robotActionController.cpp)
