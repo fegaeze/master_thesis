@@ -13,6 +13,7 @@ class ActionServiceManager {
         void initialize(ros::NodeHandle& nh, std::string rname);
         void registerNodes(BT::BehaviorTreeFactory &factory);
 
+        int getRobotFootIndex();
         void setStandKeyPressed(bool pressed);
         void setLieDownKeyPressed(bool pressed);
         void setFrRaiseKeyPressed(bool pressed);
@@ -32,6 +33,7 @@ class ActionServiceManager {
         static bool fl_raise_key_pressed;
         static bool rr_raise_key_pressed;
         static bool rl_raise_key_pressed;
+        static int robot_foot_idx;
         std::string robot_name;
 
         ros::NodeHandle nh_;

@@ -40,5 +40,10 @@ class RobotActionController : public BT::StatefulActionNode {
         int duration_counter = 0;
         ROSInterfaceManager& ros_manager;
 
+        double calculateFeetArea(const tf::Vector3& p1, const tf::Vector3& p2, const tf::Vector3& p3);
+        std::vector<double> getCOGJointPositions(int liftedLeg);
+        std::vector<double> ikSolver(const Eigen::Matrix4d& footPose, bool isRight);
+        tf::Vector3 calculateCoGPosition(const std::vector<tf::Vector3>& feet, int liftedLeg);
         void interpolateJoints(const double *targetPos);
+        
 };

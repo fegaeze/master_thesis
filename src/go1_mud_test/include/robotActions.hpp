@@ -48,3 +48,30 @@ class RobotLieDownAction : public RobotActionController {
         static const double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
         void handleKeyPressed(bool pressed) override;
 };
+
+class RobotFrRaiseAction : public RobotActionController {
+    public:
+        RobotFrRaiseAction(const std::string& name, const BT::NodeConfig& config) 
+            : RobotActionController(name, config) {}
+
+        BT::NodeStatus onStart() override;
+        BT::NodeStatus onRunning() override;
+        void onHalted() override;
+
+    private:
+        static const double FR_RAISE_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        void handleKeyPressed(bool pressed) override;
+};
+
+class RobotGoToCogAction : public RobotActionController {
+    public:
+        RobotGoToCogAction(const std::string& name, const BT::NodeConfig& config) 
+            : RobotActionController(name, config) {}
+
+        BT::NodeStatus onStart() override;
+        BT::NodeStatus onRunning() override;
+        void onHalted() override;
+
+    private:
+        static double cog_joint_positions;
+};

@@ -9,6 +9,10 @@ const double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS]
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7,
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7
 };
+const double RobotFrRaiseAction::FR_RAISE_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+    0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
+    0.0, 0.67, -1.3, -0.0, 0.67, -1.3
+};
 
 
 /** INITIALIZATION ACTION */
@@ -55,7 +59,6 @@ void RobotInitializationAction::registerNodes(BT::BehaviorTreeFactory &factory)
 
 
 /** LIE DOWN ACTION */
-
 void RobotLieDownAction::handleKeyPressed(bool pressed) {
     action_service_manager.setLieDownKeyPressed(pressed);
 }
@@ -89,5 +92,41 @@ BT::NodeStatus RobotStandAction::onRunning() {
 }
 
 void RobotStandAction::onHalted() {
+    actionHalted();
+}
+
+
+/** RAISE FR LEG ACTION */
+void RobotFrRaiseAction::handleKeyPressed(bool pressed) {
+    action_service_manager.setFrRaiseKeyPressed(pressed);
+}
+
+BT::NodeStatus RobotFrRaiseAction::onStart() {
+    ROS_INFO("GO1_RAISE_FR_ACTION");
+    return actionStart();
+}
+
+BT::NodeStatus RobotFrRaiseAction::onRunning() {
+    return actionRunning(FR_RAISE_JOINT_POSITIONS);
+}
+
+void RobotFrRaiseAction::onHalted() {
+    actionHalted();
+}
+
+
+/** GO TO COG ACTION */
+BT::NodeStatus RobotGoToCogAction::onStart() {
+    ROS_INFO("GO1_GO_TO_COG_ACTION");
+    int footPosition = action_service_manager.getRobotFootIndex();
+    cog_joint_positions = getCOGJointPositions(footPosition);
+    return actionStart();
+}
+
+BT::NodeStatus RobotGoToCogAction::onRunning() {
+    return actionRunning(cog_joint_positions);
+}
+
+void RobotGoToCogAction::onHalted() {
     actionHalted();
 }
