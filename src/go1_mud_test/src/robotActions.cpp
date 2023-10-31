@@ -1,11 +1,14 @@
 #include "robotActions.hpp"
 
 
-const double RobotStandAction::STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+std::vector<double> RobotGoToCogAction::cog_position = std::vector<double>();
+std::vector<double> RobotFrRaiseAction::fr_raise_target_position = std::vector<double>();
+
+const std::vector<double> RobotStandAction::STAND_JOINT_POSITIONS = {
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3
 };
-const double RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS] = {
+const std::vector<double> RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS = {
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7,
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7
 };
@@ -55,7 +58,6 @@ void RobotInitializationAction::registerNodes(BT::BehaviorTreeFactory &factory)
 
 
 /** LIE DOWN ACTION */
-
 void RobotLieDownAction::handleKeyPressed(bool pressed) {
     action_service_manager.setLieDownKeyPressed(pressed);
 }
@@ -89,5 +91,60 @@ BT::NodeStatus RobotStandAction::onRunning() {
 }
 
 void RobotStandAction::onHalted() {
+    actionHalted();
+}
+
+
+/** RAISE FR LEG ACTION */
+void RobotFrRaiseAction::handleKeyPressed(bool pressed) {
+    action_service_manager.setFrRaiseKeyPressed(pressed);
+}
+
+BT::NodeStatus RobotFrRaiseAction::onStart() {
+    ROS_INFO("GO1_RAISE_FR_ACTION");
+
+    Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
+
+    double reductionPercentage = 0.5;
+    footPosition.z() -= reductionPercentage * footPosition.z();
+
+    std::vector<double> leg_joints = ikSolver(footPosition, true);
+
+    unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
+    for (size_t i = 0; i < robot_state.motorState.size(); i++) {
+        fr_raise_target_position.push_back(robot_state.motorState[i].q);
+    }
+
+    for (size_t i = 0; i < leg_joints.size(); i++) {
+        fr_raise_target_position.at(i) = leg_joints.at(i);
+    }
+
+    return actionStart();
+}
+
+BT::NodeStatus RobotFrRaiseAction::onRunning() {
+    return actionRunning(fr_raise_target_position);
+}
+
+void RobotFrRaiseAction::onHalted() {
+    actionHalted();
+}
+
+
+/** GO TO COG ACTION */
+void RobotGoToCogAction::handleKeyPressed(bool pressed) {}
+
+BT::NodeStatus RobotGoToCogAction::onStart() {
+    ROS_INFO("GO1_GO_TO_COG_ACTION");
+    int footPosition = action_service_manager.getRobotFootIndex();
+    cog_position = getCOGJointPositions(footPosition);
+    return actionStart();
+}
+
+BT::NodeStatus RobotGoToCogAction::onRunning() {
+    return actionRunning(cog_position);
+}
+
+void RobotGoToCogAction::onHalted() {
     actionHalted();
 }

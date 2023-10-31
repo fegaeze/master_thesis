@@ -14,6 +14,7 @@ using namespace std::chrono_literals;
 bool ROSInterfaceManager::class_initialized = false;
 unitree_legged_msgs::LowCmd ROSInterfaceManager::robot_cmd = unitree_legged_msgs::LowCmd();
 unitree_legged_msgs::LowState ROSInterfaceManager::robot_state = unitree_legged_msgs::LowState();
+sensor_msgs::JointState ROSInterfaceManager::joint_state = sensor_msgs::JointState();
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
@@ -32,13 +33,6 @@ ROSInterfaceManager& ROSInterfaceManager::getInstance(ros::NodeHandle& nh, std::
 void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string rname) {
   nh_ = nh;
   robot_name = rname;
-
-  // jointState_.name = {
-  //   "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
-  //   "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
-  //   "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint", 
-  //   "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"
-  // };
 
   setPublishers();
   setSubscriptions();
@@ -97,19 +91,20 @@ void ROSInterfaceManager::setPublishers() {
 void ROSInterfaceManager::setRobotCmd(int joint, double pos) {
   robot_cmd.motorCmd[joint].q = pos;
 }
+
 void ROSInterfaceManager::setRobotParams() {
   for(int i=0; i<Config::NUM_OF_JOINTS; i++){
     robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
   }
 
   for (int i = 0; i < 4; i++) {
-    robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 1;
     robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.7;
 
-    robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 1;
     robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.7;
 
-    robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 1;
     robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.7;
   }
 }
@@ -169,13 +164,15 @@ void ROSInterfaceManager::lowStateCallback(
   RLthighCallback(msg->motorState[UNITREE_LEGGED_SDK::RL_1]);
   RLcalfCallback(msg->motorState[UNITREE_LEGGED_SDK::RL_2]);
 
-  // jointState_.header.stamp = ros::Time::now();
-  // for (int i(0); i < Config::NUM_OF_JOINTS; ++i) {
-  //   jointState_.position.push_back(robot_state.motorState[i].q);
-  //   jointState_.velocity.push_back(robot_state.motorState[i].dq);
-  //   jointState_.effort.push_back(robot_state.motorState[i].tauEst);
-  // }
-  // jointState_pub_.publish(jointState_);
+  joint_state.header.stamp = ros::Time::now();
+  for (int i = 0; i < Config::NUM_OF_JOINTS; ++i) {
+    joint_state.name.push_back(Config::JOINT_NAMES[i]);
+    joint_state.position.push_back(msg->motorState[i].q);
+    joint_state.velocity.push_back(msg->motorState[i].dq);
+    joint_state.effort.push_back(msg->motorState[i].tauEst);
+  }
+  joint_state_pub.publish(joint_state);
+  joint_state = sensor_msgs::JointState();
 }
 
 void ROSInterfaceManager::imuCallback(const sensor_msgs::Imu &msg)

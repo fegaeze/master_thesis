@@ -21,6 +21,8 @@ int main(int argc, char **argv) {
     BT::BehaviorTreeFactory factory;
     RobotInitializationAction robot_init_action;
 
+    factory.registerNodeType<RobotFrRaiseAction>("RobotFrRaiseAction");
+    factory.registerNodeType<RobotGoToCogAction>("RobotGoToCogAction");
     factory.registerNodeType<RobotLieDownAction>("RobotLieDownAction");
     factory.registerNodeType<RobotStandAction>("RobotStandAction");
     action_service_manager.registerNodes(factory);

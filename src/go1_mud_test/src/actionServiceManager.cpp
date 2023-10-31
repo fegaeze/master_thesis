@@ -10,6 +10,8 @@ bool ActionServiceManager::fl_raise_key_pressed = false;
 bool ActionServiceManager::rr_raise_key_pressed = false;
 bool ActionServiceManager::rl_raise_key_pressed = false;
 
+int ActionServiceManager::robot_foot_idx = UNITREE_LEGGED_SDK::FR_;
+
 ActionServiceManager& ActionServiceManager::getInstance() {
   static ActionServiceManager instance;
   return instance;
@@ -53,6 +55,9 @@ bool ActionServiceManager::actionCallback(
     return res.success; 
 }
 
+int ActionServiceManager::getRobotFootIndex() {
+    return robot_foot_idx;
+}
 
 void ActionServiceManager::setStandKeyPressed(bool pressed) {
     stand_key_pressed = pressed;
@@ -91,6 +96,7 @@ BT::NodeStatus ActionServiceManager::standKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::frRaiseKeyPressed() {
     if(fr_raise_key_pressed) {
+        robot_foot_idx = UNITREE_LEGGED_SDK::FR_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -98,6 +104,7 @@ BT::NodeStatus ActionServiceManager::frRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::flRaiseKeyPressed() {
     if(fl_raise_key_pressed) {
+        robot_foot_idx = UNITREE_LEGGED_SDK::FL_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -105,6 +112,7 @@ BT::NodeStatus ActionServiceManager::flRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::rrRaiseKeyPressed() {
     if(rr_raise_key_pressed) {
+        robot_foot_idx =UNITREE_LEGGED_SDK::RR_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -112,6 +120,7 @@ BT::NodeStatus ActionServiceManager::rrRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::rlRaiseKeyPressed() {
     if(rl_raise_key_pressed) {
+        robot_foot_idx = UNITREE_LEGGED_SDK::RL_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;

@@ -31,7 +31,7 @@ class RobotStandAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const double STAND_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const std::vector<double> STAND_JOINT_POSITIONS;
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -45,6 +45,34 @@ class RobotLieDownAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const double LIE_DOWN_JOINT_POSITIONS[Config::NUM_OF_JOINTS];
+        static const std::vector<double> LIE_DOWN_JOINT_POSITIONS;
+        void handleKeyPressed(bool pressed) override;
+};
+
+class RobotFrRaiseAction : public RobotActionController {
+    public:
+        RobotFrRaiseAction(const std::string& name, const BT::NodeConfig& config) 
+            : RobotActionController(name, config) {}
+
+        BT::NodeStatus onStart() override;
+        BT::NodeStatus onRunning() override;
+        void onHalted() override;
+
+    private:
+        static std::vector<double> fr_raise_target_position;
+        void handleKeyPressed(bool pressed) override;
+};
+
+class RobotGoToCogAction : public RobotActionController {
+    public:
+        RobotGoToCogAction(const std::string& name, const BT::NodeConfig& config) 
+            : RobotActionController(name, config) {}
+
+        BT::NodeStatus onStart() override;
+        BT::NodeStatus onRunning() override;
+        void onHalted() override;
+
+    private:
+        static std::vector<double> cog_position;
         void handleKeyPressed(bool pressed) override;
 };
