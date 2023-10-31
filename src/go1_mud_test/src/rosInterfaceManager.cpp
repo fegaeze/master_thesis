@@ -99,13 +99,13 @@ void ROSInterfaceManager::setRobotParams() {
 
   for (int i = 0; i < 4; i++) {
     robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 1;
-    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 1;
+    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.7;
 
     robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 1;
-    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 1;
+    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.7;
 
     robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 1;
-    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 1;
+    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.7;
   }
 }
 
@@ -172,6 +172,7 @@ void ROSInterfaceManager::lowStateCallback(
     joint_state.effort.push_back(msg->motorState[i].tauEst);
   }
   joint_state_pub.publish(joint_state);
+  joint_state = sensor_msgs::JointState();
 }
 
 void ROSInterfaceManager::imuCallback(const sensor_msgs::Imu &msg)

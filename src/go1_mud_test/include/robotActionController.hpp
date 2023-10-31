@@ -35,6 +35,7 @@ class RobotActionController : public BT::StatefulActionNode {
 
     protected:
         ActionServiceManager& action_service_manager;
+        ROSInterfaceManager& ros_manager;
         virtual void handleKeyPressed(bool pressed) = 0;
 
         void actionHalted();
@@ -42,6 +43,8 @@ class RobotActionController : public BT::StatefulActionNode {
         BT::NodeStatus actionRunning(std::vector<double>& targetPos);
         BT::NodeStatus actionRunning(const std::vector<double>& targetPos);
         std::vector<double> getCOGJointPositions(int liftedLeg);
+        Eigen::Vector3d getCurrentFootPosition(const std::string& legName);
+        std::vector<double> ikSolver(const Eigen::Vector3d& footPosition, bool isRight);
 
     private:
         static constexpr int MOVEMENT_DURATION_MS = 5 * Config::LOOP_RATE_HZ;
@@ -51,12 +54,10 @@ class RobotActionController : public BT::StatefulActionNode {
         tf2_ros::TransformListener tfl;
 
         int duration_counter = 0;
-        ROSInterfaceManager& ros_manager;
 
-        double calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3);
-        std::vector<double> ikSolver(const Eigen::Matrix4d& footPose, bool isRight);
         tf2::Vector3 calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg);
+        double calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3);
         void interpolateJoints(std::vector<double>& targetPos);
         void interpolateJoints(const std::vector<double>& targetPos);
-        
+        bool isJointsCloseToTarget(const unitree_legged_msgs::LowState& currentState, const std::vector<double>& targetPos);
 };

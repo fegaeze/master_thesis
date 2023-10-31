@@ -59,7 +59,7 @@ class RobotFrRaiseAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static const std::vector<double> FR_RAISE_JOINT_POSITIONS;
+        static std::vector<double> fr_raise_target_position;
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -73,6 +73,6 @@ class RobotGoToCogAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static std::vector<double> cog_joint_positions;
+        static std::vector<double> cog_position;
         void handleKeyPressed(bool pressed) override;
 };

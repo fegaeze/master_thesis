@@ -9,7 +9,8 @@ bool ActionServiceManager::fr_raise_key_pressed = false;
 bool ActionServiceManager::fl_raise_key_pressed = false;
 bool ActionServiceManager::rr_raise_key_pressed = false;
 bool ActionServiceManager::rl_raise_key_pressed = false;
-int ActionServiceManager::robot_foot_idx = Config::RobotFootIndex::FR_FOOT;
+
+int ActionServiceManager::robot_foot_idx = UNITREE_LEGGED_SDK::FR_;
 
 ActionServiceManager& ActionServiceManager::getInstance() {
   static ActionServiceManager instance;
@@ -95,7 +96,7 @@ BT::NodeStatus ActionServiceManager::standKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::frRaiseKeyPressed() {
     if(fr_raise_key_pressed) {
-        robot_foot_idx = Config::RobotFootIndex::FR_FOOT;
+        robot_foot_idx = UNITREE_LEGGED_SDK::FR_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -103,7 +104,7 @@ BT::NodeStatus ActionServiceManager::frRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::flRaiseKeyPressed() {
     if(fl_raise_key_pressed) {
-        robot_foot_idx = Config::RobotFootIndex::FL_FOOT;
+        robot_foot_idx = UNITREE_LEGGED_SDK::FL_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -111,7 +112,7 @@ BT::NodeStatus ActionServiceManager::flRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::rrRaiseKeyPressed() {
     if(rr_raise_key_pressed) {
-        robot_foot_idx = Config::RobotFootIndex::RR_FOOT;
+        robot_foot_idx =UNITREE_LEGGED_SDK::RR_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;
@@ -119,7 +120,7 @@ BT::NodeStatus ActionServiceManager::rrRaiseKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::rlRaiseKeyPressed() {
     if(rl_raise_key_pressed) {
-        robot_foot_idx = Config::RobotFootIndex::RL_FOOT;
+        robot_foot_idx = UNITREE_LEGGED_SDK::RL_;
         return BT::NodeStatus::SUCCESS;
     }
     return BT::NodeStatus::FAILURE;

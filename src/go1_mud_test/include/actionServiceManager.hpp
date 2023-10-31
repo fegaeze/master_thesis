@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 
 #include "behaviortree_cpp/bt_factory.h"
+#include "unitree_legged_sdk/unitree_legged_sdk.h"
+
 #include "go1_mud_test/ActionService.h"
 
 class ActionServiceManager {

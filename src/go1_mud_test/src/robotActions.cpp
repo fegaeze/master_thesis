@@ -1,7 +1,9 @@
 #include "robotActions.hpp"
 
 
-std::vector<double> RobotGoToCogAction::cog_joint_positions = std::vector<double>();
+std::vector<double> RobotGoToCogAction::cog_position = std::vector<double>();
+std::vector<double> RobotFrRaiseAction::fr_raise_target_position = std::vector<double>();
+
 const std::vector<double> RobotStandAction::STAND_JOINT_POSITIONS = {
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3
@@ -9,10 +11,6 @@ const std::vector<double> RobotStandAction::STAND_JOINT_POSITIONS = {
 const std::vector<double> RobotLieDownAction::LIE_DOWN_JOINT_POSITIONS = {
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7,
     -0.5, 1.15, -2.7, 0.5, 1.15, -2.7
-};
-const std::vector<double> RobotFrRaiseAction::FR_RAISE_JOINT_POSITIONS = {
-    0.0, 0.67, -2.5, -0.0, 0.67, -1.3,
-    0.0, 0.67, -1.3, -0.0, 0.67, -1.3
 };
 
 
@@ -104,11 +102,28 @@ void RobotFrRaiseAction::handleKeyPressed(bool pressed) {
 
 BT::NodeStatus RobotFrRaiseAction::onStart() {
     ROS_INFO("GO1_RAISE_FR_ACTION");
+
+    Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
+
+    double reductionPercentage = 0.5;
+    footPosition.z() -= reductionPercentage * footPosition.z();
+
+    std::vector<double> leg_joints = ikSolver(footPosition, true);
+
+    unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
+    for (size_t i = 0; i < robot_state.motorState.size(); i++) {
+        fr_raise_target_position.push_back(robot_state.motorState[i].q);
+    }
+
+    for (size_t i = 0; i < leg_joints.size(); i++) {
+        fr_raise_target_position.at(i) = leg_joints.at(i);
+    }
+
     return actionStart();
 }
 
 BT::NodeStatus RobotFrRaiseAction::onRunning() {
-    return actionRunning(FR_RAISE_JOINT_POSITIONS);
+    return actionRunning(fr_raise_target_position);
 }
 
 void RobotFrRaiseAction::onHalted() {
@@ -122,16 +137,12 @@ void RobotGoToCogAction::handleKeyPressed(bool pressed) {}
 BT::NodeStatus RobotGoToCogAction::onStart() {
     ROS_INFO("GO1_GO_TO_COG_ACTION");
     int footPosition = action_service_manager.getRobotFootIndex();
-    cog_joint_positions = getCOGJointPositions(footPosition);
-    // ROS_INFO("FR: %f, %f, %f", cog_joint_positions[0], cog_joint_positions[1], cog_joint_positions[2]);
-    // ROS_INFO("FL: %f, %f, %f", cog_joint_positions[3], cog_joint_positions[4], cog_joint_positions[5]);
-    // ROS_INFO("RR: %f, %f, %f", cog_joint_positions[6], cog_joint_positions[7], cog_joint_positions[8]);
-    // ROS_INFO("RL: %f, %f, %f", cog_joint_positions[9], cog_joint_positions[10], cog_joint_positions[11]);
+    cog_position = getCOGJointPositions(footPosition);
     return actionStart();
 }
 
 BT::NodeStatus RobotGoToCogAction::onRunning() {
-    return actionRunning(cog_joint_positions);
+    return actionRunning(cog_position);
 }
 
 void RobotGoToCogAction::onHalted() {

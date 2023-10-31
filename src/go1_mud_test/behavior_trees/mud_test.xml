@@ -17,10 +17,7 @@
 
                 <ReactiveSequence>
                     <LieDownKeyPressed name="go1_lie_down_pressed?"/>
-                    <Sequence>
-                        <RobotStandAction name="go1_stand_action"/>
-                        <RobotLieDownAction name="go1_lie_down_action"/>
-                    </Sequence>
+                    <RobotLieDownAction name="go1_lie_down_action"/>
                 </ReactiveSequence>
 
                 <ReactiveSequence>

@@ -2,13 +2,9 @@
 
 namespace Config {
     constexpr int LOOP_RATE_HZ = 500;
-
-    constexpr int FEET_SIZE = 4;
     constexpr double HIP_LENGTH = 0.08;
     constexpr double THIGH_LENGTH = 0.213;
     constexpr double CALF_LENGTH = 0.213;
-
-    constexpr int JOINTS_PER_LEG = 3;
     constexpr int NUM_OF_JOINTS = 12;
     const std::string JOINT_NAMES[NUM_OF_JOINTS] = {
         "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
@@ -24,12 +20,5 @@ namespace Config {
         const std::string RAISE_FL_FOOT = "RAISE_FL_FOOT";
         const std::string RAISE_RR_FOOT = "RAISE_RR_FOOT";
         const std::string RAISE_RL_FOOT = "RAISE_RL_FOOT";
-    }
-
-    namespace RobotFootIndex {
-        const int FR_FOOT = 0;
-        const int FL_FOOT = 1;
-        const int RR_FOOT = 2;
-        const int RL_FOOT = 3;
     }
 }
