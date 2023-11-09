@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     factory.registerNodeType<RobotFrRaiseAction>("RobotFrRaiseAction");
     factory.registerNodeType<RobotGoToCogAction>("RobotGoToCogAction");
     factory.registerNodeType<RobotLieDownAction>("RobotLieDownAction");
+    factory.registerNodeType<RobotDropFootAction>("RobotDropFootAction");
     factory.registerNodeType<RobotStandAction>("RobotStandAction");
     action_service_manager.registerNodes(factory);
     robot_init_action.registerNodes(factory);

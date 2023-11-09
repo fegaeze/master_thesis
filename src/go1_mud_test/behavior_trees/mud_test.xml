@@ -21,6 +21,11 @@
                 </ReactiveSequence>
 
                 <ReactiveSequence>
+                    <DropFootKeyPressed name="go1_drop_foot_pressed?"/>
+                    <RobotDropFootAction name="go1_drop_foot_action"/>
+                </ReactiveSequence>
+
+                <ReactiveSequence>
                     <FrRaiseKeyPressed name="go1_fr_raise_pressed?"/>
                     <Sequence>
                         <RobotStandAction name="go1_stand_action"/>

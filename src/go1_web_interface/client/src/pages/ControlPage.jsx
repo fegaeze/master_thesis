@@ -1,6 +1,4 @@
 import React from "react";
-import { tabHeaders } from "./config";
-import Tab from "../components/Tab";
 import Card from "../components/Card";
 import Header from "../components/Header";
 import QuickAction from "../components/QuickAction";
@@ -31,20 +29,27 @@ const ControlPage = () => {
             <Card state={controlMethod} title="Control Method" />
             <Card state={currentFootRaised} title="Current Foot Raised" />
           </div>
-          
-          <Tab headers={tabHeaders}>
-            <div className="m-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {
-                actions.map(({ key, title }) => {
-                  return (
-                    <QuickAction key={key} action={() => handleQuickActionClick(key, title)} title={title} />
-                  );
-                })
-              }
-            </div>
 
-            <div>Tab 2</div>
-          </Tab>
+          <div className="border rounded-lg">
+            <div className="flex rounded-t-lg px-6 py-3 bg-white text-gray-600">
+              <h2 className="">
+                Experiment Actions
+              </h2>
+            </div> 
+            <div className="p-4 min-h-[300px]">
+              <div className="m-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {
+                  actions.map(({ key, title }) => {
+                    return (
+                      <QuickAction key={key} action={() => handleQuickActionClick(key, title)} title={title} />
+                    );
+                  })
+                }
+              </div>
+            </div>
+          </div>
+          
+          
         </main>
       </div>
     </>

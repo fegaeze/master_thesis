@@ -2,7 +2,12 @@
 
 
 unitree_legged_msgs::LowState RobotActionController::last_known_state = unitree_legged_msgs::LowState();
+std::vector<double> RobotActionController::fr_foot_target_position = std::vector<double>();
 
+void RobotActionController::actionHalted() {
+    duration_counter = 0;
+    handleKeyPressed(false);
+}
 
 BT::NodeStatus RobotActionController::actionStart() {
     last_known_state = ros_manager.getRobotState();
@@ -30,60 +35,6 @@ BT::NodeStatus RobotActionController::actionRunning(std::vector<double>& targetP
     return actionRunning(const_cast<const std::vector<double>&>(targetPos));
 }
 
-void RobotActionController::actionHalted() {
-    duration_counter = 0;
-    handleKeyPressed(false);
-}
-
-
-double RobotActionController::calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3) {
-    double a = sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
-    double b = sqrt(pow(p2.x() - p3.x(), 2) + pow(p2.y() - p3.y(), 2) + pow(p2.z() - p3.z(), 2));
-    double c = sqrt(pow(p3.x() - p1.x(), 2) + pow(p3.y() - p1.y(), 2) + pow(p3.z() - p1.z(), 2));
-
-    double s = (a + b + c) / 2.0;
-    return sqrt(s * (s - a) * (s - b) * (s - c));
-}
-
-tf2::Vector3 RobotActionController::calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg) {
-    tf2::Vector3 cog;
-    double totalArea = 0.0;
-
-    int size = feet.size();
-    liftedLeg = (liftedLeg + size) % size;
-
-    for (int i = 0; i < size; i++) {
-
-        if (liftedLeg != -1) {
-            if (i == liftedLeg || (i + 1) % size == liftedLeg || (i + 2) % size == liftedLeg) {
-                continue;
-            }
-        }
-
-        double area = calculateFeetArea(feet[i], feet[(i + 1) % size], feet[(i + 2) % size]);
-        totalArea += area;
-
-        tf2::Vector3 centroid(0.0, 0.0, 0.0);
-
-        centroid.setX((feet[i].x() + feet[(i + 1) % size].x() + feet[(i + 2) % size].x()) / 3.0);
-        centroid.setY((feet[i].y() + feet[(i + 1) % size].y() + feet[(i + 2) % size].y()) / 3.0);
-        centroid.setZ((feet[i].z() + feet[(i + 1) % size].z() + feet[(i + 2) % size].z()) / 3.0);
-
-        cog.setX(cog.x() + centroid.x() * area);
-        cog.setY(cog.y() + centroid.y() * area);
-        cog.setZ(cog.z() + centroid.z() * area);
-    }
-
-    if (totalArea > 0.0) {
-        cog.setX(cog.x() / totalArea);
-        cog.setY(cog.y() / totalArea);
-        cog.setZ(cog.z() / totalArea);
-    } else {
-        cog.setZero();
-    }
-
-    return cog;
-}
 
 std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
 
@@ -174,83 +125,6 @@ std::vector<double> RobotActionController::getCOGJointPositions(int liftedLeg) {
     return joint_angles;
 }
 
-std::vector<double> RobotActionController::ikSolver(const Eigen::Vector3d& footPosition, bool isRight) {
-    double footPositionX_ = footPosition.x();
-    double footPositionY_ = footPosition.y();
-    double footPositionZ_ = footPosition.z();
-
-    double xPos_squared = footPositionX_ * footPositionX_;
-    double yPos_squared = footPositionY_ * footPositionY_;
-    double zPos_squared = footPositionZ_ * footPositionZ_;
-
-    double hipLength_squared = Config::HIP_LENGTH * Config::HIP_LENGTH;
-    double thighLength_squared = Config::THIGH_LENGTH * Config::THIGH_LENGTH;
-    double calfLength_squared = Config::CALF_LENGTH * Config::CALF_LENGTH;
-
-    std::vector<double> jointAngles{0, 0, 0};
-
-    // Theta One    
-    double alpha = std::acos(Config::HIP_LENGTH / std::sqrt(yPos_squared + zPos_squared));
-    double beta = std::atan2(footPositionZ_, footPositionY_);
-    if (isRight) {
-        jointAngles.at(0) = M_PI - alpha + beta;
-    } else {
-        jointAngles.at(0) = alpha + beta;
-    }
-
-    // Theta Three
-    double gamma =
-        std::acos((hipLength_squared + thighLength_squared + calfLength_squared -
-                    xPos_squared - yPos_squared - zPos_squared) /
-                    (2 * Config::THIGH_LENGTH * Config::CALF_LENGTH));
-    jointAngles.at(2) = gamma - M_PI;
-
-    // Theta Two
-    double z_prime = -std::sqrt(yPos_squared + zPos_squared - hipLength_squared);
-    double psi = std::atan2(Config::CALF_LENGTH * std::sin(jointAngles.at(2)),
-                            Config::THIGH_LENGTH + Config::CALF_LENGTH * std::cos(jointAngles.at(2)));
-    jointAngles.at(1) = M_PI - psi + std::atan2(footPositionX_, z_prime);
-
-    for (int i = 0; i < 3; i++) {
-        if (jointAngles.at(i) >= M_PI) {
-            jointAngles.at(i) -= 2 * M_PI;
-        }
-        if (jointAngles.at(i) <= -M_PI) {
-            jointAngles.at(i) += 2 * M_PI;
-        }
-    }
-
-    return jointAngles;
-}
-
-void RobotActionController::interpolateJoints(const std::vector<double>& targetPos) {
-    double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
-    for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
-        ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
-    }
-}
-
-void RobotActionController::interpolateJoints(std::vector<double>& targetPos) {
-    return interpolateJoints(const_cast<const std::vector<double>&>(targetPos));
-}
-
-bool RobotActionController::isJointsCloseToTarget(const unitree_legged_msgs::LowState& currentState, const std::vector<double>& targetPos) {
-
-    double threshold = 0.01;
-
-    for (size_t i = 0; i < Config::NUM_OF_JOINTS; i++) {
-        double currentJointPosition = currentState.motorState[i].q;
-        double targetJointPosition = targetPos[i];
-        double positionDifference = std::abs(currentJointPosition - targetJointPosition);
-
-        if (positionDifference > threshold) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 Eigen::Vector3d RobotActionController::getCurrentFootPosition(const std::string& legName) {
     std::string hipName = legName + "_hip";
     std::string footName = legName + "_foot";
@@ -293,3 +167,201 @@ Eigen::Vector3d RobotActionController::getCurrentFootPosition(const std::string&
          return Eigen::Vector3d(1.0, 2.0, 3.0);
     }
 }
+
+void RobotActionController::setCurrentTime(ros::Time& time) {
+    prev_time = ros::Time::now();
+}
+
+
+tf2::Vector3 RobotActionController::calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg) {
+    tf2::Vector3 cog;
+    double totalArea = 0.0;
+
+    int size = feet.size();
+    liftedLeg = (liftedLeg + size) % size;
+
+    for (int i = 0; i < size; i++) {
+
+        if (liftedLeg != -1) {
+            if (i == liftedLeg || (i + 1) % size == liftedLeg || (i + 2) % size == liftedLeg) {
+                continue;
+            }
+        }
+
+        double area = calculateFeetArea(feet[i], feet[(i + 1) % size], feet[(i + 2) % size]);
+        totalArea += area;
+
+        tf2::Vector3 centroid(0.0, 0.0, 0.0);
+
+        centroid.setX((feet[i].x() + feet[(i + 1) % size].x() + feet[(i + 2) % size].x()) / 3.0);
+        centroid.setY((feet[i].y() + feet[(i + 1) % size].y() + feet[(i + 2) % size].y()) / 3.0);
+        centroid.setZ((feet[i].z() + feet[(i + 1) % size].z() + feet[(i + 2) % size].z()) / 3.0);
+
+        cog.setX(cog.x() + centroid.x() * area);
+        cog.setY(cog.y() + centroid.y() * area);
+        cog.setZ(cog.z() + centroid.z() * area);
+    }
+
+    if (totalArea > 0.0) {
+        cog.setX(cog.x() / totalArea);
+        cog.setY(cog.y() / totalArea);
+        cog.setZ(cog.z() / totalArea);
+    } else {
+        cog.setZero();
+    }
+
+    return cog;
+}
+
+double RobotActionController::calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3) {
+    double a = sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
+    double b = sqrt(pow(p2.x() - p3.x(), 2) + pow(p2.y() - p3.y(), 2) + pow(p2.z() - p3.z(), 2));
+    double c = sqrt(pow(p3.x() - p1.x(), 2) + pow(p3.y() - p1.y(), 2) + pow(p3.z() - p1.z(), 2));
+
+    double s = (a + b + c) / 2.0;
+    return sqrt(s * (s - a) * (s - b) * (s - c));
+}
+
+double RobotActionController::calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime) {
+    // Calculate time elapsed since the previous update
+    ros::Duration time_elapsed = currentTime - prev_time;
+    double delta_time = time_elapsed.toSec() * 1000.0;
+
+    // Check for zero delta_time to prevent division by zero
+    if (delta_time == 0) {
+        return prev_command;
+    }
+
+    // Calculate the error between the setpoint and feedback
+    double error = Config::FORCE_CMD_SETPOINT - std::abs(feedbackForce);
+
+    // Calculate the error rate (derivative term)
+    double error_rate = (error - prev_error) / delta_time;
+
+    // Debugging information
+    ROS_INFO("DELTA_TIME: %f", delta_time);
+    ROS_INFO("ERROR: %f", error);
+    ROS_INFO("PREV_ERROR: %f", prev_error);
+
+    // Check for a sign change in the error, reset integral term if sign flips
+    if ((error * prev_error) < 0) {
+        error_cumulative = 0;
+    }
+
+    ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
+    // Update the integral term (anti-windup mechanism)
+    error_cumulative += error * delta_time;
+
+    // Initialize the control command
+    double command = 0;
+
+    // Determine the control action based on the feedback
+    if (std::abs(feedbackForce) > Config::FORCE_CMD_SETPOINT) {
+        // Calculate the control command for pulling action
+        command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
+        // command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
+    } else {
+        // Calculate the control command for pushing action
+        command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
+        // command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
+    }
+
+    // Store the current command, error, and time for the next iteration
+    prev_command = command;
+    prev_error = error;
+    prev_time = currentTime;
+
+    // Return the computed control command
+    return command;
+}
+
+std::vector<double> RobotActionController::ikSolver(const Eigen::Vector3d& footPosition, bool isRight) {
+    double footPositionX_ = footPosition.x();
+    double footPositionY_ = footPosition.y();
+    double footPositionZ_ = footPosition.z();
+
+    double xPos_squared = footPositionX_ * footPositionX_;
+    double yPos_squared = footPositionY_ * footPositionY_;
+    double zPos_squared = footPositionZ_ * footPositionZ_;
+
+    double hipLength_squared = Config::HIP_LENGTH * Config::HIP_LENGTH;
+    double thighLength_squared = Config::THIGH_LENGTH * Config::THIGH_LENGTH;
+    double calfLength_squared = Config::CALF_LENGTH * Config::CALF_LENGTH;
+
+    std::vector<double> jointAngles{0, 0, 0};
+
+    // Theta One    
+    double alpha = std::acos(Config::HIP_LENGTH / std::sqrt(yPos_squared + zPos_squared));
+    double beta = std::atan2(footPositionZ_, footPositionY_);
+    if (isRight) {
+        jointAngles.at(0) = M_PI - alpha + beta;
+    } else {
+        jointAngles.at(0) = alpha + beta;
+    }
+
+    if (std::isnan(jointAngles.at(0))) {
+        return std::vector<double>();
+    }
+
+    // Theta Three
+    double gamma =
+        std::acos((hipLength_squared + thighLength_squared + calfLength_squared -
+                    xPos_squared - yPos_squared - zPos_squared) /
+                    (2 * Config::THIGH_LENGTH * Config::CALF_LENGTH));
+    jointAngles.at(2) = gamma - M_PI;
+
+    if (std::isnan(jointAngles.at(2))) {
+        return std::vector<double>();
+    }
+
+    // Theta Two
+    double z_prime = -std::sqrt(yPos_squared + zPos_squared - hipLength_squared);
+    double psi = std::atan2(Config::CALF_LENGTH * std::sin(jointAngles.at(2)),
+                            Config::THIGH_LENGTH + Config::CALF_LENGTH * std::cos(jointAngles.at(2)));
+    jointAngles.at(1) = M_PI - psi + std::atan2(footPositionX_, z_prime);
+
+    if (std::isnan(jointAngles.at(1))) {
+        return std::vector<double>();
+    }
+
+    for (int i = 0; i < 3; i++) {
+        if (jointAngles.at(i) >= M_PI) {
+            jointAngles.at(i) -= 2 * M_PI;
+        }
+        if (jointAngles.at(i) <= -M_PI) {
+            jointAngles.at(i) += 2 * M_PI;
+        }
+    }
+
+    return jointAngles;
+}
+
+void RobotActionController::interpolateJoints(const std::vector<double>& targetPos) {
+    double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
+    for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
+        // ROS_INFO("The target position: %f", targetPos[j]);
+        ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
+    }
+}
+
+void RobotActionController::interpolateJoints(std::vector<double>& targetPos) {
+    return interpolateJoints(const_cast<const std::vector<double>&>(targetPos));
+}
+
+bool RobotActionController::isJointsCloseToTarget(const unitree_legged_msgs::LowState& currentState, const std::vector<double>& targetPos) {
+
+    double threshold = 0.01;
+
+    for (size_t i = 0; i < Config::NUM_OF_JOINTS; i++) {
+        double currentJointPosition = currentState.motorState[i].q;
+        double targetJointPosition = targetPos[i];
+        double positionDifference = std::abs(currentJointPosition - targetJointPosition);
+
+        if (positionDifference > threshold) {
+            return false;
+        }
+    }
+
+    return true;
+}
+

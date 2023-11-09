@@ -3,12 +3,13 @@
 
 
 bool ActionServiceManager::class_initialized = false;
-bool ActionServiceManager::lie_down_key_pressed = false;
-bool ActionServiceManager::stand_key_pressed = false;
+bool ActionServiceManager::drop_foot_key_pressed = false;
 bool ActionServiceManager::fr_raise_key_pressed = false;
 bool ActionServiceManager::fl_raise_key_pressed = false;
+bool ActionServiceManager::lie_down_key_pressed = false;
 bool ActionServiceManager::rr_raise_key_pressed = false;
 bool ActionServiceManager::rl_raise_key_pressed = false;
+bool ActionServiceManager::stand_key_pressed = false;
 
 int ActionServiceManager::robot_foot_idx = UNITREE_LEGGED_SDK::FR_;
 
@@ -40,6 +41,8 @@ bool ActionServiceManager::actionCallback(
         setStandKeyPressed(true);      
     } else if (req.action == Config::RobotAction::LIE_DOWN) {
         setLieDownKeyPressed(true);
+    } else if (req.action == Config::RobotAction::DROP_FOOT) {
+        setDropFootKeyPressed(true);
     } else if (req.action == Config::RobotAction::RAISE_FR_FOOT) {
         setFrRaiseKeyPressed(true);
     } else if (req.action == Config::RobotAction::RAISE_FL_FOOT) {
@@ -65,6 +68,9 @@ void ActionServiceManager::setStandKeyPressed(bool pressed) {
 void ActionServiceManager::setLieDownKeyPressed(bool pressed) {
     lie_down_key_pressed = pressed;
 }
+void ActionServiceManager::setDropFootKeyPressed(bool pressed) {
+    drop_foot_key_pressed = pressed;
+}
 void ActionServiceManager::setFrRaiseKeyPressed(bool pressed) {
     fr_raise_key_pressed = pressed;
 }
@@ -88,6 +94,14 @@ BT::NodeStatus ActionServiceManager::lieDownKeyPressed() {
 
 BT::NodeStatus ActionServiceManager::standKeyPressed() {
     if(stand_key_pressed) {
+        return BT::NodeStatus::SUCCESS;
+    }
+
+    return BT::NodeStatus::FAILURE;
+}
+
+BT::NodeStatus ActionServiceManager::dropFootKeyPressed() {
+    if(drop_foot_key_pressed) {
         return BT::NodeStatus::SUCCESS;
     }
 
@@ -128,6 +142,7 @@ BT::NodeStatus ActionServiceManager::rlRaiseKeyPressed() {
 
 void ActionServiceManager::registerNodes(BT::BehaviorTreeFactory &factory) {
     factory.registerSimpleAction("LieDownKeyPressed", std::bind(&ActionServiceManager::lieDownKeyPressed, this));
+    factory.registerSimpleAction("DropFootKeyPressed", std::bind(&ActionServiceManager::dropFootKeyPressed, this));
     factory.registerSimpleAction("StandKeyPressed", std::bind(&ActionServiceManager::standKeyPressed, this));
     factory.registerSimpleAction("FrRaiseKeyPressed", std::bind(&ActionServiceManager::frRaiseKeyPressed, this));
     factory.registerSimpleAction("FlRaiseKeyPressed", std::bind(&ActionServiceManager::flRaiseKeyPressed, this));

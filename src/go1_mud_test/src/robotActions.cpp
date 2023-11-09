@@ -2,8 +2,6 @@
 
 
 std::vector<double> RobotGoToCogAction::cog_position = std::vector<double>();
-std::vector<double> RobotFrRaiseAction::fr_raise_target_position = std::vector<double>();
-
 const std::vector<double> RobotStandAction::STAND_JOINT_POSITIONS = {
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3,
     0.0, 0.67, -1.3, -0.0, 0.67, -1.3
@@ -76,6 +74,69 @@ void RobotLieDownAction::onHalted() {
 }
 
 
+/** DROP_FOOT ACTION */
+void RobotDropFootAction::handleKeyPressed(bool pressed) {
+    action_service_manager.setDropFootKeyPressed(pressed);
+}
+
+BT::NodeStatus RobotDropFootAction::onStart() {
+    ROS_INFO("GO1_DROP_FOOT_ACTION");
+    ros::Time current_time = ros::Time::now();
+    setCurrentTime(current_time);
+    return actionStart();
+}
+
+BT::NodeStatus RobotDropFootAction::onRunning() {
+
+    double force_feedback = ros_manager.getCurrentForce();
+    Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
+
+    if(contact_initiated == false && std::abs(force_feedback) > 2.0) {
+        contact_initiated = true;
+        initial_z_position = footPosition.z();
+    }
+
+    ROS_INFO("Force Feedback (f): %f", force_feedback);
+    ROS_INFO("Force Feedback (int): %d", static_cast<int>(force_feedback) % 1);
+    ROS_INFO("The initial footPosition is: %f", footPosition.z());
+
+    if(contact_initiated) {
+        ros::Time current_time = ros::Time::now();
+        double control_cmd = calculatePIDControlOutput(force_feedback, current_time);
+        footPosition.z() = initial_z_position - control_cmd;
+    } else {
+        footPosition.z() = -0.33;
+    }
+
+    ROS_INFO("The end footPosition is: %f", footPosition.z());
+
+    unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
+    for (size_t i = 0; i < robot_state.motorState.size(); i++) {
+        fr_foot_target_position.push_back(robot_state.motorState[i].q);
+    }
+
+    std::vector<double> leg_joints = ikSolver(footPosition, true);
+
+    if(leg_joints.empty()) {
+        ROS_INFO("The leg joints are NAN");
+        actionHalted();
+        return BT::NodeStatus::SUCCESS;
+    }
+
+    for (size_t i = 0; i < 3; i++) {
+        fr_foot_target_position.at(i) = leg_joints.at(i);
+    }
+
+    interpolateJoints(fr_foot_target_position);
+    fr_foot_target_position.clear();
+    return BT::NodeStatus::RUNNING;
+}
+
+void RobotDropFootAction::onHalted() {
+    actionHalted();
+}
+
+
 /** STAND ACTION */
 void RobotStandAction::handleKeyPressed(bool pressed) {
     action_service_manager.setStandKeyPressed(pressed);
@@ -105,25 +166,25 @@ BT::NodeStatus RobotFrRaiseAction::onStart() {
 
     Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
 
-    double reductionPercentage = 0.5;
+    double reductionPercentage = 0.7;
     footPosition.z() -= reductionPercentage * footPosition.z();
 
     std::vector<double> leg_joints = ikSolver(footPosition, true);
 
     unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
     for (size_t i = 0; i < robot_state.motorState.size(); i++) {
-        fr_raise_target_position.push_back(robot_state.motorState[i].q);
+        fr_foot_target_position.push_back(robot_state.motorState[i].q);
     }
 
     for (size_t i = 0; i < leg_joints.size(); i++) {
-        fr_raise_target_position.at(i) = leg_joints.at(i);
+        fr_foot_target_position.at(i) = leg_joints.at(i);
     }
 
     return actionStart();
 }
 
 BT::NodeStatus RobotFrRaiseAction::onRunning() {
-    return actionRunning(fr_raise_target_position);
+    return actionRunning(fr_foot_target_position);
 }
 
 void RobotFrRaiseAction::onHalted() {

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ros/ros.h>
 
+#include "geometry_msgs/WrenchStamped.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
 #include "unitree_legged_msgs/LowCmd.h"
@@ -16,7 +17,9 @@ class ROSInterfaceManager {
         static ROSInterfaceManager& getInstance();
         static ROSInterfaceManager& getInstance(ros::NodeHandle& nh, std::string rname);
         
+        double getCurrentForce();
         unitree_legged_msgs::LowState getRobotState();
+
         void initialize(ros::NodeHandle& nh, std::string rname);
         void publishRobotCmd();
         void setRobotCmd(int joint, double pos);
@@ -31,11 +34,12 @@ class ROSInterfaceManager {
         static bool class_initialized;
         static unitree_legged_msgs::LowCmd robot_cmd;
         static unitree_legged_msgs::LowState robot_state;
+        static geometry_msgs::WrenchStamped robot_force_state;
         static sensor_msgs::JointState joint_state;
         
         ros::NodeHandle nh_;
         ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS];
-        ros::Subscriber imu_sub, real_robot_state_sub, sim_robot_state_sub[Config::NUM_OF_JOINTS];
+        ros::Subscriber imu_sub, force_sub, real_robot_state_sub, sim_robot_state_sub[Config::NUM_OF_JOINTS];
 
         std::string robot_name;
         
@@ -44,6 +48,7 @@ class ROSInterfaceManager {
 
         void lowStateCallback(const unitree_legged_msgs::LowState::ConstPtr &msg);
         void imuCallback(const sensor_msgs::Imu &msg);
+        void forceCallback(const geometry_msgs::WrenchStamped &msg);
 
         void FRhipCallback(const unitree_legged_msgs::MotorState &msg);
         void FRthighCallback(const unitree_legged_msgs::MotorState &msg);

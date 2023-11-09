@@ -16,16 +16,8 @@ export const actions = [
         key: "RAISE_FR_FOOT",
         title: "Raise FR Foot"
     },  
-    {
-        key: "RAISE_FL_FOOT",
-        title: "Raise FL Foot"
-    },  
-    {
-        key: "RAISE_RR_FOOT",
-        title: "Raise RR Foot"
-    },  
-    {
-        key: "RAISE_RL_FOOT",
-        title: "Raise RL Foot"
+    {   
+        key: "DROP_FOOT",
+        title: "Drop Foot"
     }
 ]

@@ -10,11 +10,11 @@ Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 
 using namespace std::chrono_literals;
 
-
 bool ROSInterfaceManager::class_initialized = false;
+geometry_msgs::WrenchStamped ROSInterfaceManager::robot_force_state = geometry_msgs::WrenchStamped();
+sensor_msgs::JointState ROSInterfaceManager::joint_state = sensor_msgs::JointState();
 unitree_legged_msgs::LowCmd ROSInterfaceManager::robot_cmd = unitree_legged_msgs::LowCmd();
 unitree_legged_msgs::LowState ROSInterfaceManager::robot_state = unitree_legged_msgs::LowState();
-sensor_msgs::JointState ROSInterfaceManager::joint_state = sensor_msgs::JointState();
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
@@ -71,6 +71,10 @@ unitree_legged_msgs::LowState ROSInterfaceManager::getRobotState() {
   return robot_state;
 }
 
+double ROSInterfaceManager::getCurrentForce() {
+  return robot_force_state.wrench.force.z;
+}
+
 void ROSInterfaceManager::setPublishers() {
   joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/" + robot_name + "/joint_states", 1);
   real_robot_cmd_pub = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
@@ -110,6 +114,7 @@ void ROSInterfaceManager::setRobotParams() {
 }
 
 void ROSInterfaceManager::setSubscriptions() {
+  force_sub = nh_.subscribe("/ati_ft_data", 1, &ROSInterfaceManager::forceCallback, this);
   imu_sub = nh_.subscribe("/trunk_imu", 1, &ROSInterfaceManager::imuCallback, this);
   real_robot_state_sub = nh_.subscribe("/low_state", 1, &ROSInterfaceManager::lowStateCallback, this);
   sim_robot_state_sub[0] = nh_.subscribe("/" + robot_name + "_gazebo/FR_hip_controller/state", 1, &ROSInterfaceManager::FRhipCallback, this);
@@ -189,6 +194,10 @@ void ROSInterfaceManager::imuCallback(const sensor_msgs::Imu &msg)
   robot_state.imu.accelerometer[0] = msg.linear_acceleration.x;
   robot_state.imu.accelerometer[1] = msg.linear_acceleration.y;
   robot_state.imu.accelerometer[2] = msg.linear_acceleration.z;
+}
+
+void ROSInterfaceManager::forceCallback(const geometry_msgs::WrenchStamped &msg) {
+  robot_force_state = msg;
 }
 
 void ROSInterfaceManager::FRhipCallback(

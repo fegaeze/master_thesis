@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   robot_state_publisher
   roscpp
+  rospy
   tf2_geometry_msgs
   tf2_ros
   unitree_legged_msgs
@@ -33,6 +34,11 @@ catkin_package(
   CATKIN_DEPENDS 
   unitree_legged_msgs
   message_runtime
+)
+
+catkin_install_python(PROGRAMS
+  scripts/force_sensor_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 include_directories(

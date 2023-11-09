@@ -3,23 +3,23 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <Tab tab_name="tab1" containers="1">
    <Container>
-    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+    <DockSplitter count="2" sizes="0.5;0.5" orientation="-">
      <DockArea name="...">
-      <plot mode="TimeSeries" style="Lines" flip_x="false" flip_y="false">
-       <range top="0.100000" right="8.556841" bottom="-0.100000" left="1.029115"/>
+      <plot flip_y="false" flip_x="false" style="Lines" mode="TimeSeries">
+       <range left="0.000000" top="0.842808" bottom="-2.642795" right="31.727800"/>
        <limitY/>
-       <curve name="/go1_gazebo/FL_calf_controller/command/q" color="#1f77b4"/>
-       <curve name="/go1_gazebo/FL_hip_controller/command/q" color="#d62728"/>
-       <curve name="/go1_gazebo/FL_thigh_controller/command/q" color="#1ac938"/>
+       <curve color="#1f77b4" name="/go1_gazebo/FR_calf_controller/command/q"/>
+       <curve color="#f14cc1" name="/go1_gazebo/FR_thigh_controller/command/q"/>
+       <curve color="#1ac938" name="/go1_gazebo/FR_hip_controller/command/q"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot mode="TimeSeries" style="Lines" flip_x="false" flip_y="false">
-       <range top="1.396456" right="8.556841" bottom="-2.921506" left="1.029115"/>
+      <plot flip_y="false" flip_x="false" style="Lines" mode="TimeSeries">
+       <range left="0.000000" top="0.845470" bottom="-2.644497" right="31.727800"/>
        <limitY/>
-       <curve name="/go1_gazebo/FL_calf_controller/state/q" color="#ff7f0e"/>
-       <curve name="/go1_gazebo/FL_hip_controller/state/q" color="#f14cc1"/>
-       <curve name="/go1_gazebo/FL_thigh_controller/state/q" color="#1f77b4"/>
+       <curve color="#d62728" name="/go1_gazebo/FR_calf_controller/state/q"/>
+       <curve color="#ff7f0e" name="/go1_gazebo/FR_hip_controller/state/q"/>
+       <curve color="#9467bd" name="/go1_gazebo/FR_thigh_controller/state/q"/>
       </plot>
      </DockArea>
     </DockSplitter>

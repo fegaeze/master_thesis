@@ -16,12 +16,13 @@ class ActionServiceManager {
         void registerNodes(BT::BehaviorTreeFactory &factory);
 
         int getRobotFootIndex();
-        void setStandKeyPressed(bool pressed);
-        void setLieDownKeyPressed(bool pressed);
+        void setDropFootKeyPressed(bool pressed);
         void setFrRaiseKeyPressed(bool pressed);
         void setFlRaiseKeyPressed(bool pressed);
+        void setLieDownKeyPressed(bool pressed);
         void setRrRaiseKeyPressed(bool pressed);
         void setRlRaiseKeyPressed(bool pressed);
+        void setStandKeyPressed(bool pressed);
 
     private:
         ActionServiceManager() {};
@@ -29,12 +30,13 @@ class ActionServiceManager {
         ActionServiceManager& operator=(const ActionServiceManager&) = delete;
 
         static bool class_initialized;
-        static bool lie_down_key_pressed;
-        static bool stand_key_pressed;
+        static bool drop_foot_key_pressed;
         static bool fr_raise_key_pressed;
         static bool fl_raise_key_pressed;
+        static bool lie_down_key_pressed;
         static bool rr_raise_key_pressed;
         static bool rl_raise_key_pressed;
+        static bool stand_key_pressed;
         static int robot_foot_idx;
         std::string robot_name;
 
@@ -46,11 +48,12 @@ class ActionServiceManager {
             go1_mud_test::ActionService::Response& res
         );
 
-        BT::NodeStatus lieDownKeyPressed();
-        BT::NodeStatus standKeyPressed();
-        BT::NodeStatus frRaiseKeyPressed();
+        BT::NodeStatus dropFootKeyPressed();
         BT::NodeStatus flRaiseKeyPressed();
         BT::NodeStatus rrRaiseKeyPressed();
+        BT::NodeStatus lieDownKeyPressed();
+        BT::NodeStatus frRaiseKeyPressed();
         BT::NodeStatus rlRaiseKeyPressed();
+        BT::NodeStatus standKeyPressed();
 
 };

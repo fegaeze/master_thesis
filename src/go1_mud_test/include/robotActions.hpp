@@ -49,6 +49,19 @@ class RobotLieDownAction : public RobotActionController {
         void handleKeyPressed(bool pressed) override;
 };
 
+class RobotDropFootAction : public RobotActionController {
+    public:
+        RobotDropFootAction(const std::string& name, const BT::NodeConfig& config) 
+            : RobotActionController(name, config) {}
+
+        BT::NodeStatus onStart() override;
+        BT::NodeStatus onRunning() override;
+        void onHalted() override;
+
+    private:
+        void handleKeyPressed(bool pressed) override;
+};
+
 class RobotFrRaiseAction : public RobotActionController {
     public:
         RobotFrRaiseAction(const std::string& name, const BT::NodeConfig& config) 
@@ -59,7 +72,6 @@ class RobotFrRaiseAction : public RobotActionController {
         void onHalted() override;
 
     private:
-        static std::vector<double> fr_raise_target_position;
         void handleKeyPressed(bool pressed) override;
 };
 
