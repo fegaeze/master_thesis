@@ -2,7 +2,6 @@
 
 
 unitree_legged_msgs::LowState RobotActionController::last_known_state = unitree_legged_msgs::LowState();
-std::vector<double> RobotActionController::fr_foot_target_position = std::vector<double>();
 
 void RobotActionController::actionHalted() {
     duration_counter = 0;
@@ -15,15 +14,12 @@ BT::NodeStatus RobotActionController::actionStart() {
 }
 
 BT::NodeStatus RobotActionController::actionRunning(const std::vector<double>& targetPos) {
-
     duration_counter += 1;
-    bool time_elapsed = duration_counter >= MOVEMENT_DURATION_MS;
-    unitree_legged_msgs::LowState currentState = ros_manager.getRobotState();
-    bool prev_state_near = isJointsCloseToTarget(currentState, targetPos);
 
-    if(time_elapsed || prev_state_near) {
-        duration_counter = 0;
-        handleKeyPressed(false);
+    if(duration_counter > MOVEMENT_DURATION_MS) {
+        actionHalted();
+        unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
+        ROS_INFO("JOINT_POSITION: %f", robot_state.motorState[0].q);
         return BT::NodeStatus::SUCCESS;
     }
 
@@ -164,12 +160,15 @@ Eigen::Vector3d RobotActionController::getCurrentFootPosition(const std::string&
         return correctedFootPosition;
     } catch (const tf2::TransformException& ex) {
         ROS_ERROR("%s", ex.what());
-         return Eigen::Vector3d(1.0, 2.0, 3.0);
+        return Eigen::Vector3d(1.0, 2.0, 3.0); //TODO: fix this thingy
     }
 }
 
-void RobotActionController::setCurrentTime(ros::Time& time) {
-    prev_time = ros::Time::now();
+void RobotActionController::configurePID(ros::Time& current_time) {
+    prev_time = current_time;
+    error_cumulative = 0;
+    prev_command = 0;
+    prev_error = Config::FORCE_CMD_SETPOINT;
 }
 
 
@@ -233,22 +232,20 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
     }
 
     // Calculate the error between the setpoint and feedback
-    double error = Config::FORCE_CMD_SETPOINT - std::abs(feedbackForce);
+    double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
 
     // Calculate the error rate (derivative term)
     double error_rate = (error - prev_error) / delta_time;
 
     // Debugging information
-    ROS_INFO("DELTA_TIME: %f", delta_time);
     ROS_INFO("ERROR: %f", error);
-    ROS_INFO("PREV_ERROR: %f", prev_error);
 
     // Check for a sign change in the error, reset integral term if sign flips
     if ((error * prev_error) < 0) {
         error_cumulative = 0;
     }
 
-    ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
+    // ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
     // Update the integral term (anti-windup mechanism)
     error_cumulative += error * delta_time;
 
@@ -338,8 +335,13 @@ std::vector<double> RobotActionController::ikSolver(const Eigen::Vector3d& footP
 
 void RobotActionController::interpolateJoints(const std::vector<double>& targetPos) {
     double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
+
+    ROS_INFO("Initial Position: %f", last_known_state.motorState[0].q);
+    ROS_INFO("Target Position: %f", targetPos[0]);
+    ROS_INFO("Percent: %f", percent);
+    ROS_INFO("Duration Counter: %f", static_cast<double>(duration_counter));
+    ROS_INFO("Movement duration: %f", static_cast<double>(MOVEMENT_DURATION_MS));
     for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
-        // ROS_INFO("The target position: %f", targetPos[j]);
         ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
     }
 }
@@ -350,7 +352,7 @@ void RobotActionController::interpolateJoints(std::vector<double>& targetPos) {
 
 bool RobotActionController::isJointsCloseToTarget(const unitree_legged_msgs::LowState& currentState, const std::vector<double>& targetPos) {
 
-    double threshold = 0.01;
+    double threshold = 0.005;
 
     for (size_t i = 0; i < Config::NUM_OF_JOINTS; i++) {
         double currentJointPosition = currentState.motorState[i].q;

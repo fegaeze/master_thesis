@@ -19,7 +19,7 @@
     <rosparam file="$(find go1_description)/config/robot_control.yaml" command="load"/>
 
     <group if="$(arg simulation)">
-        <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="false"
+        <node pkg="controller_manager" type="spawner" name="controller_spawner" respawn="true"
             output="screen" ns="/$(arg rname)_gazebo" args="joint_state_controller
             FL_hip_controller FL_thigh_controller FL_calf_controller
             FR_hip_controller FR_thigh_controller FR_calf_controller
@@ -37,11 +37,11 @@
         </include>
     </group>
 
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" respawn="true" output="screen">
         <remap unless="$(arg simulation)" from="/joint_states" to="/go1/joint_states" />
         <remap if="$(arg simulation)" from="/joint_states" to="/go1_gazebo/joint_states" />
     </node>
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find go1_mud_test)/config/go1.rviz" />
-    <node pkg="go1_mud_test" type="go1_mud_test_node" name="go1_mud_test_node" respawn="false" output="screen" />
+    <node pkg="go1_mud_test" type="go1_mud_test_node" name="go1_mud_test_node" output="screen" />
 </launch>

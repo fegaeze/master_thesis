@@ -72,6 +72,7 @@ class RobotFrRaiseAction : public RobotActionController {
         void onHalted() override;
 
     private:
+        static std::vector<double> fr_foot_target_position;
         void handleKeyPressed(bool pressed) override;
 };
 

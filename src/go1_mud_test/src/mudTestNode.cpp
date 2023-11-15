@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
         tree.tickOnce();
         ros_manager.publishRobotCmd();
         ros::spinOnce();
+        unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
+        ROS_INFO("JOINT_POSITION_PUBLISHED: %f", robot_state.motorState[0].q);
         rate.sleep();
     }
 

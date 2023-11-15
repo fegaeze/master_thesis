@@ -28,7 +28,6 @@
                 <ReactiveSequence>
                     <FrRaiseKeyPressed name="go1_fr_raise_pressed?"/>
                     <Sequence>
-                        <RobotStandAction name="go1_stand_action"/>
                         <RobotGoToCogAction name="go1_go_to_cog_action"/>
                         <RobotFrRaiseAction name="go1_fr_raise_action"/>
                     </Sequence>

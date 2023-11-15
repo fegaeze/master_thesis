@@ -16,6 +16,6 @@
         <arg name="world_name" value="$(find go1_mud_test)/worlds/$(arg wname).world"/>
     </include>
 
-    <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" respawn="false" output="screen"
+    <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" output="screen"
           args="-urdf -z 0.6 -model $(arg rname)_gazebo -param robot_description"/>
 </launch>

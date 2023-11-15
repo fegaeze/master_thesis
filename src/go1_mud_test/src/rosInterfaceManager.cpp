@@ -103,13 +103,13 @@ void ROSInterfaceManager::setRobotParams() {
 
   for (int i = 0; i < 4; i++) {
     robot_cmd.motorCmd[i * 3 + 0].Kp = 70 * 1;
-    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 0].Kd = 3 * 1;
 
     robot_cmd.motorCmd[i * 3 + 1].Kp = 180 * 1;
-    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 1].Kd = 8 * 1;
 
     robot_cmd.motorCmd[i * 3 + 2].Kp = 300 * 1;
-    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 0.7;
+    robot_cmd.motorCmd[i * 3 + 2].Kd = 15 * 1;
   }
 }
 
@@ -132,6 +132,7 @@ void ROSInterfaceManager::setSubscriptions() {
 }
 
 void ROSInterfaceManager::publishRobotCmd() {
+  ROS_INFO("ROBOT_COMMAND_PUBLISHED: %f", robot_cmd.motorCmd[0].q);
   real_robot_cmd_pub.publish(robot_cmd);
   for (int m = 0; m < Config::NUM_OF_JOINTS; m++) {
     sim_robot_cmd_pub[m].publish(robot_cmd.motorCmd[m]);
