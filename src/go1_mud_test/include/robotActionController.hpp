@@ -69,8 +69,8 @@ class RobotActionController : public BT::StatefulActionNode {
         double prev_error = Config::FORCE_CMD_SETPOINT;
         ros::Time prev_time = ros::Time::now();
 
-        const double P_PULL = 0.0033;
-        const double P_PUSH = 0.0033;
+        const double P_PULL = 0.05;
+        const double P_PUSH = 0.05;
 
         const double I_PULL = 0;
         const double I_PUSH = 0;

@@ -105,10 +105,17 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
         ros::Time current_time = ros::Time::now();
         double control_cmd = calculatePIDControlOutput(force_feedback, current_time);
         ROS_INFO("The control command is: %f", control_cmd);
-        footPosition.z() -= (control_cmd / static_cast<double>(Config::LOOP_RATE_HZ));
+        footPosition.z() -= (control_cmd / 100);
     } else {
-        footPosition.z() -= (0.1 / static_cast<double>(Config::LOOP_RATE_HZ));
+        footPosition.z() -= (0.1 / 50);
     }
+
+    if(footPosition.z() <= -0.33) {
+        ROS_INFO("Full length reached");
+        actionHalted();
+        return BT::NodeStatus::SUCCESS;
+    }
+
 
     ROS_INFO("The proposed foot position: %f", footPosition.z());
     ROS_INFO("================================================");
@@ -116,13 +123,13 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
 
     std::vector<double> leg_joints = ikSolver(footPosition, true);
     if(leg_joints.empty()) {
-        ROS_INFO("The leg joints are NAN");
         return BT::NodeStatus::RUNNING;
     }
 
     for (int j = 0; j < 3; j++) {
         ros_manager.setRobotCmd(j, leg_joints.at(j));
     }
+
     return BT::NodeStatus::RUNNING;
 }
 
@@ -198,6 +205,10 @@ BT::NodeStatus RobotGoToCogAction::onStart() {
 }
 
 BT::NodeStatus RobotGoToCogAction::onRunning() {
+    if(cog_position.empty()) {
+        ROS_INFO("Cannot go to COG");
+        return BT::NodeStatus::SUCCESS;
+    }
     return actionRunning(cog_position);
 }
 

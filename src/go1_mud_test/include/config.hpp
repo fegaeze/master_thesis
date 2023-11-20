@@ -4,7 +4,7 @@ namespace Config {
     constexpr int LOOP_RATE_HZ = 500;
     constexpr int NUM_OF_JOINTS = 12;
 
-    constexpr double FORCE_CMD_SETPOINT = 30.0;
+    constexpr double FORCE_CMD_SETPOINT = 20.0;
     constexpr double CALF_LENGTH = 0.213;
     constexpr double HIP_LENGTH = 0.08;
     constexpr double THIGH_LENGTH = 0.213;
