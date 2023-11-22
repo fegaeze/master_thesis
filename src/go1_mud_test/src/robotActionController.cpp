@@ -146,17 +146,19 @@ Eigen::Vector3d RobotActionController::getCurrentFootPosition(const std::string&
             trunkToHipTransform.transform.rotation.z
         );
 
-        Eigen::Matrix4d T_hip_trunk = Eigen::Matrix4d::Identity();
-        T_hip_trunk.block<3, 3>(0, 0) = rotation.toRotationMatrix();
-        T_hip_trunk.block<3, 1>(0, 3) = hipPosition;
+        Eigen::Matrix4d T_hip_hip_static = Eigen::Matrix4d::Identity();
+        T_hip_hip_static.block<3, 3>(0, 0) = rotation.toRotationMatrix();
+
+        Eigen::Matrix4d T_hip_static_trunk = Eigen::Matrix4d::Identity();
+        T_hip_static_trunk.block<3, 1>(0, 3) = hipPosition;
 
         Eigen::Matrix4d T_foot_trunk = Eigen::Matrix4d::Identity();
         T_foot_trunk.block<3, 1>(0, 3) = footPosition;
 
-        Eigen::Matrix4d T_trunk_hip = T_hip_trunk.inverse();
-        Eigen::Matrix4d T_foot_hip = T_trunk_hip * T_foot_trunk;
+        Eigen::Matrix4d T_trunk_hip_static = T_hip_static_trunk.inverse();
+        Eigen::Matrix4d T_foot_hip_static = T_trunk_hip_static * T_foot_trunk;
 
-        Eigen::Vector3d correctedFootPosition = T_foot_hip.block<3, 1>(0, 3);
+        Eigen::Vector3d correctedFootPosition = T_foot_hip_static.block<3, 1>(0, 3);
         return correctedFootPosition;
     } catch (const tf2::TransformException& ex) {
         ROS_ERROR("%s", ex.what());
