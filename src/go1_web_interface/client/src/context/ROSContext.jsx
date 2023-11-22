@@ -1,7 +1,7 @@
 import { createContext, useState } from "react";
 import { Service, Ros } from "roslib";
 
-import { ACTION_SERVICE_TYPE, ACTION_SERVICE_URL, ROSBRIDGE_URL } from "../config";
+import { ACTION_SERVICE_TYPE, ACTION_SERVICE_URL, CONTROLLER_SERVICE_URL, CONTROLLER_SERVICE_TYPE, ROSBRIDGE_URL } from "../config";
 
 const rosObj = {
   ROS: new Ros(),
@@ -21,8 +21,14 @@ const ROSProvider = (props) => {
     serviceType : ACTION_SERVICE_TYPE,
   });
 
+  const controllerService = new Service({
+    ros : ros.ROS,
+    name : CONTROLLER_SERVICE_URL,
+    serviceType : CONTROLLER_SERVICE_TYPE,
+  });
+
   return (
-    <ROSContext.Provider value={[ros, actionService, setROS]}>
+    <ROSContext.Provider value={[ros, actionService, controllerService, setROS]}>
       {props.children}
     </ROSContext.Provider>
   );

@@ -3,7 +3,7 @@ import { ServiceRequest } from "roslib";
 import { ROSContext, ROSProvider } from "../context/ROSContext";
 
 function useROS() {
-  const [ros, actionService, setROS] = useContext(ROSContext);
+  const [ros, actionService, controllerService, setROS] = useContext(ROSContext);
 
   function changeUrl(new_url) {
     setROS((ros) => ({ ...ros, url: new_url }));
@@ -53,8 +53,15 @@ function useROS() {
 
   const sendServiceRequest = (serviceObj, callback) => {
     try {
-      const request = new ServiceRequest(serviceObj);
-      actionService.callService(request, callback);
+      const { action, id } = serviceObj;
+      const request = new ServiceRequest({ action });
+
+      if(id === "CONTROLLER") {
+        controllerService.callService(request, callback);
+      } else {
+        actionService.callService(request, callback);
+      }
+
     } catch (e) {
       console.log(e, e.message);
     }
@@ -66,7 +73,7 @@ function useROS() {
     handleDisconnect,
     sendServiceRequest,
     ros: ros.ROS,
-    isConnected: ros.isConnected,
+    isConnected: true,
     error: ros.error,
     url: ros.url,
   };

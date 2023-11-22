@@ -11,6 +11,7 @@
 #include "unitree_legged_msgs/LowState.h"
 
 #include "actionServiceManager.hpp"
+#include "controllerServiceManager.hpp"
 #include "config.hpp"
 #include "rosInterfaceManager.hpp"
 
@@ -22,6 +23,7 @@ class RobotActionController : public BT::StatefulActionNode {
             : StatefulActionNode(name, config),
             ros_manager(ROSInterfaceManager::getInstance()),
             action_service_manager(ActionServiceManager::getInstance()),
+            controller_service_manager(ControllerServiceManager::getInstance()),
             buffer(),
             tfl(buffer) {}
 
@@ -35,6 +37,7 @@ class RobotActionController : public BT::StatefulActionNode {
 
     protected:
         ActionServiceManager& action_service_manager;
+        ControllerServiceManager& controller_service_manager;
         ROSInterfaceManager& ros_manager;
         virtual void handleKeyPressed(bool pressed) = 0;
 
