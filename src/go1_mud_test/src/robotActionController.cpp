@@ -16,10 +16,11 @@ BT::NodeStatus RobotActionController::actionStart() {
 BT::NodeStatus RobotActionController::actionRunning(const std::vector<double>& targetPos) {
     duration_counter += 1;
 
-    if(duration_counter > MOVEMENT_DURATION_MS) {
+    unitree_legged_msgs::LowState currentState = ros_manager.getRobotState();
+    bool hasReachedTarget = isJointsCloseToTarget(currentState, targetPos);
+
+    if(hasReachedTarget || duration_counter > MOVEMENT_DURATION_MS) {
         actionHalted();
-        unitree_legged_msgs::LowState robot_state = ros_manager.getRobotState();
-        ROS_INFO("JOINT_POSITION: %f", robot_state.motorState[0].q);
         return BT::NodeStatus::SUCCESS;
     }
 

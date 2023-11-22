@@ -1,5 +1,5 @@
 
-const QuickAction = ({ action, title }) => {
+const CallToActionBtn = ({ action, title }) => {
     return (
         <button
             onClick={action}
@@ -10,4 +10,4 @@ const QuickAction = ({ action, title }) => {
     );
 }
 
-export default QuickAction;
+export default CallToActionBtn;

@@ -25,4 +25,9 @@ namespace Config {
         const std::string RAISE_RR_FOOT = "RAISE_RR_FOOT";
         const std::string RAISE_RL_FOOT = "RAISE_RL_FOOT";
     }
+
+    namespace RobotController {
+        const std::string FIS = "FIS";
+        const std::string PID = "PID";
+    }
 }

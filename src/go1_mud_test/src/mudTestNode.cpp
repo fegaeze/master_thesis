@@ -1,6 +1,7 @@
 #include <ros/package.h>
 
 #include "actionServiceManager.hpp"
+#include "controllerServiceManager.hpp"
 #include "rosInterfaceManager.hpp"
 #include "robotActions.hpp"
 #include "config.hpp"
@@ -16,6 +17,7 @@ int main(int argc, char **argv) {
     spinner.start();
 
     ActionServiceManager& action_service_manager = ActionServiceManager::getInstance(nh, rname);
+    ControllerServiceManager& controller_service_manager = ControllerServiceManager::getInstance(nh, rname);
     ROSInterfaceManager& ros_manager = ROSInterfaceManager::getInstance(nh, rname);
 
     BT::BehaviorTreeFactory factory;
