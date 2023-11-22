@@ -23,6 +23,7 @@ find_package(Eigen3 REQUIRED)
 add_service_files(
   FILES
   ActionService.srv
+  ControllerService.srv
 )
 
 generate_messages(
@@ -48,6 +49,12 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+add_library(actionServiceManager src/actionServiceManager.cpp)
+add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
+add_library(controllerServiceManager src/controllerServiceManager.cpp)
+add_dependencies(controllerServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
 add_library(robotActionController src/robotActionController.cpp)
 add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
@@ -58,14 +65,12 @@ target_link_libraries(robotActions robotActionController)
 add_library(rosInterfaceManager src/rosInterfaceManager.cpp)
 add_dependencies(rosInterfaceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
-add_library(actionServiceManager src/actionServiceManager.cpp)
-add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
-
 add_executable(go1_mud_test_node src/mudTestNode.cpp)
 add_dependencies(go1_mud_test_node ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(go1_mud_test_node 
   ${catkin_LIBRARIES} 
-  actionServiceManager 
+  actionServiceManager
+  controllerServiceManager 
   robotActions 
   rosInterfaceManager
 )

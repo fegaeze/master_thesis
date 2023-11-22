@@ -1,6 +1,7 @@
 #include "robotActions.hpp"
 
 
+double RobotDropFootAction::initial_foot_position = 0.0;
 std::vector<double> RobotGoToCogAction::cog_position = std::vector<double>();
 std::vector<double> RobotFrRaiseAction::fr_foot_target_position = std::vector<double>();
 
@@ -89,98 +90,51 @@ BT::NodeStatus RobotDropFootAction::onStart() {
 }
 
 BT::NodeStatus RobotDropFootAction::onRunning() {
-
     double force_feedback = std::abs(ros_manager.getCurrentForce());
+    Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
 
     if(contact_initiated == false && force_feedback > 2.0) {
+        initial_foot_position = std::abs(footPosition.z());
         contact_initiated = true;
     }
 
     ROS_INFO("================================================");
+    ROS_INFO("The current foot position: %f", footPosition.z());
     ROS_INFO("Force Feedback (f): %f", force_feedback);
 
-    double footZChange = 0.1 / 50.0;
-
     if(contact_initiated) {
-        ros::Time current_time = ros::Time::now();
-        double control_cmd = calculatePIDControlOutput(force_feedback, current_time);
+        double control_cmd = runControlMethod(force_feedback);
         ROS_INFO("The control command is: %f", control_cmd);
-        footZChange = control_cmd / 100;
+        footPosition.z() -= (control_cmd / 100);
+    } else {
+        footPosition.z() -= (0.1 / 50);
     }
 
-    std::vector<Eigen::Vector3d> footPositions;
-    std::vector<std::string> footNames = {"FR", "FL", "RR", "RL"};
+    ROS_INFO("The proposed foot position: %f", footPosition.z());
+    ROS_INFO("================================================");
+    ROS_INFO("                                                  ");
 
-    ROS_INFO("Change Position by: %f", footZChange);
-    for (const auto& footName : footNames) {
-        Eigen::Vector3d position = getCurrentFootPosition(footName);
-        if(footName == "FR") {
-            // ROS_INFO("The position x is: %f", position.x());
-            // ROS_INFO("The position y is: %f", position.y());
-            ROS_INFO("The position z before change is: %f", position.z());
-            position.z() -= footZChange;
-            ROS_INFO("The position z after change is: %f", position.z());
-        }
-
-        if(footName == "RR") {
-            ROS_INFO("The position x before change is: %f", position.x());
-            ROS_INFO("The position y before change is: %f", position.y());
-            ROS_INFO("The position z before change is: %f", position.z());
-        }
-
-        // TODO: MAP BACK TO HOME POSITION
-
-        position.x() -= (footZChange / 4);
-        position.y() += (footZChange / 4);
-
-        if(footName == "RR") {
-            ROS_INFO("The position x after change is is: %f", position.x());
-            ROS_INFO("The position y after change is is: %f", position.y());
-            ROS_INFO("The position z after change is is: %f", position.z
-            ());
-        }
-        footPositions.push_back(position);
-    }
-
-    Eigen::Vector3d frFootPosition = footPositions.at(0);
-    if(frFootPosition.z() <= -0.33) {
-        ROS_INFO("Full length reached");
+    if(footPosition.z() <= Config::LEG_Z_POS_LIMIT) {
         actionHalted();
         return BT::NodeStatus::SUCCESS;
     }
 
-    ROS_INFO("================================================");
-    ROS_INFO("                                                  ");
-
-    std::vector<double> flattenedLegJoints;
-    for (size_t i = 0; i < footPositions.size(); ++i) {
-        const auto& position = footPositions.at(i % 4);
-
-        // Solve inverse kinematics and get leg joints
-        std::vector<double> legJoints;
-        std::string footName = footNames.at(i);
-
-        if (footName == "FR" || footName == "RR") {
-            legJoints = ikSolver(position, true);
-        } else {
-            legJoints = ikSolver(position, false);
-        }
-
-        // Check if leg joints are empty
-        if (legJoints.empty()) {
-            ROS_INFO("Inverse kinematics failed");
-            return BT::NodeStatus::RUNNING;
-        }
-
-        flattenedLegJoints.insert(flattenedLegJoints.end(), legJoints.begin(), legJoints.end());
+    std::vector<double> leg_joints = ikSolver(footPosition, true);
+    if(leg_joints.empty()) {
+        return BT::NodeStatus::RUNNING;
+    }
+    
+    for (int j = 0; j < 3; j++) {
+        ros_manager.setRobotCmd(j, leg_joints.at(j));
     }
 
-    for (int j = 0; j < flattenedLegJoints.size(); j++) {
-        ros_manager.setRobotCmd(j, flattenedLegJoints.at(j));
+    if(contact_initiated) {
+        double percent = (std::abs(footPosition.z()) - initial_foot_position) / (std::abs(Config::LEG_Z_POS_LIMIT) - initial_foot_position);
+        for (int j = 3; j < Config::NUM_OF_JOINTS; j++) {
+            ros_manager.setRobotCmd(j, (RobotActionController::last_known_state.motorState[j].q * (1 - percent)) + (RobotStandAction::STAND_JOINT_POSITIONS[j] * percent));
+        }
     }
 
-    footPositions.clear();
-    flattenedLegJoints.clear();
     return BT::NodeStatus::RUNNING;
 }
 
@@ -199,7 +153,7 @@ BT::NodeStatus RobotStandAction::onStart() {
     return actionStart();
 }
 
-BT::NodeStatus RobotStandAction::onRunning() {
+BT::NodeStatus RobotStandAction::onRunning() { 
     return actionRunning(STAND_JOINT_POSITIONS);
 }
 

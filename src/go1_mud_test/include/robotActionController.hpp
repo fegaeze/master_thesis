@@ -52,14 +52,15 @@ class RobotActionController : public BT::StatefulActionNode {
         Eigen::Vector3d getCurrentFootPosition(const std::string& legName);
         void configurePID(ros::Time& current_time);
 
+        double runControlMethod(double feedbackForce);
         double calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime);
         std::vector<double> ikSolver(const Eigen::Vector3d& footPosition, bool isRight);
         void interpolateJoints(std::vector<double>& targetPos);
         void interpolateJoints(const std::vector<double>& targetPos);
 
+        static unitree_legged_msgs::LowState last_known_state;
     private:
         static constexpr int MOVEMENT_DURATION_MS = 5 * Config::LOOP_RATE_HZ;
-        static unitree_legged_msgs::LowState last_known_state;
 
         tf2_ros::Buffer buffer;
         tf2_ros::TransformListener tfl;

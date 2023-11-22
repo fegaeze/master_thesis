@@ -161,17 +161,11 @@ Eigen::Vector3d RobotActionController::getCurrentFootPosition(const std::string&
 
         Eigen::Vector3d correctedFootPosition = T_foot_hip_static.block<3, 1>(0, 3);
         return correctedFootPosition;
+
     } catch (const tf2::TransformException& ex) {
         ROS_ERROR("%s", ex.what());
         return Eigen::Vector3d(1.0, 2.0, 3.0); //TODO: fix this thingy
     }
-}
-
-void RobotActionController::configurePID(ros::Time& current_time) {
-    prev_time = current_time;
-    error_cumulative = 0;
-    prev_command = 0;
-    prev_error = Config::FORCE_CMD_SETPOINT;
 }
 
 
@@ -224,56 +218,6 @@ double RobotActionController::calculateFeetArea(const tf2::Vector3& p1, const tf
     return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
-double RobotActionController::calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime) {
-    // Calculate time elapsed since the previous update
-    ros::Duration time_elapsed = currentTime - prev_time;
-    double delta_time = time_elapsed.toSec() * 1000.0;
-
-    // Check for zero delta_time to prevent division by zero
-    if (delta_time == 0) {
-        return prev_command;
-    }
-
-    // Calculate the error between the setpoint and feedback
-    double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
-
-    // Calculate the error rate (derivative term)
-    double error_rate = (error - prev_error) / delta_time;
-
-    // Debugging information
-    ROS_INFO("ERROR: %f", error);
-
-    // Check for a sign change in the error, reset integral term if sign flips
-    if ((error * prev_error) < 0) {
-        error_cumulative = 0;
-    }
-
-    // ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
-    // Update the integral term (anti-windup mechanism)
-    error_cumulative += error * delta_time;
-
-    // Initialize the control command
-    double command = 0;
-
-    // Determine the control action based on the feedback
-    if (std::abs(feedbackForce) > Config::FORCE_CMD_SETPOINT) {
-        // Calculate the control command for pulling action
-        command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
-        // command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
-    } else {
-        // Calculate the control command for pushing action
-        command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
-        // command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
-    }
-
-    // Store the current command, error, and time for the next iteration
-    prev_command = command;
-    prev_error = error;
-    prev_time = currentTime;
-
-    // Return the computed control command
-    return command;
-}
 
 std::vector<double> RobotActionController::ikSolver(const Eigen::Vector3d& footPosition, bool isRight) {
     double footPositionX_ = footPosition.x();
@@ -338,12 +282,6 @@ std::vector<double> RobotActionController::ikSolver(const Eigen::Vector3d& footP
 
 void RobotActionController::interpolateJoints(const std::vector<double>& targetPos) {
     double percent = static_cast<double>(duration_counter) / static_cast<double>(MOVEMENT_DURATION_MS);
-
-    ROS_INFO("Initial Position: %f", last_known_state.motorState[0].q);
-    ROS_INFO("Target Position: %f", targetPos[0]);
-    ROS_INFO("Percent: %f", percent);
-    ROS_INFO("Duration Counter: %f", static_cast<double>(duration_counter));
-    ROS_INFO("Movement duration: %f", static_cast<double>(MOVEMENT_DURATION_MS));
     for (int j = 0; j < Config::NUM_OF_JOINTS; j++) {
         ros_manager.setRobotCmd(j, (last_known_state.motorState[j].q * (1 - percent)) + (targetPos[j] * percent));
     }
@@ -370,3 +308,76 @@ bool RobotActionController::isJointsCloseToTarget(const unitree_legged_msgs::Low
     return true;
 }
 
+
+
+void RobotActionController::configurePID(ros::Time& current_time) {
+    prev_time = current_time;
+    error_cumulative = 0;
+    prev_command = 0;
+    prev_error = Config::FORCE_CMD_SETPOINT;
+}
+
+double RobotActionController::calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime) {
+    // Calculate time elapsed since the previous update
+    ros::Duration time_elapsed = currentTime - prev_time;
+    double delta_time = time_elapsed.toSec() * 1000.0;
+
+    // Check for zero delta_time to prevent division by zero
+    if (delta_time == 0) {
+        return prev_command;
+    }
+
+    // Calculate the error between the setpoint and feedback
+    double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
+
+    // Calculate the error rate (derivative term)
+    double error_rate = (error - prev_error) / delta_time;
+
+    // Debugging information
+    ROS_INFO("ERROR: %f", error);
+
+    // Check for a sign change in the error, reset integral term if sign flips
+    if ((error * prev_error) < 0) {
+        error_cumulative = 0;
+    }
+
+    // ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
+    // Update the integral term (anti-windup mechanism)
+    error_cumulative += error * delta_time;
+
+    // Initialize the control command
+    double command = 0;
+
+    // Determine the control action based on the feedback
+    if (std::abs(feedbackForce) > Config::FORCE_CMD_SETPOINT) {
+        // Calculate the control command for pulling action
+        command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
+        // command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
+    } else {
+        // Calculate the control command for pushing action
+        command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
+        // command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
+    }
+
+    // Store the current command, error, and time for the next iteration
+    prev_command = command;
+    prev_error = error;
+    prev_time = currentTime;
+
+    // Return the computed control command
+    return command;
+}
+
+double RobotActionController::runControlMethod(double feedbackForce) {
+    std::string control_method = controller_service_manager.getControlMethod();
+
+    double control_output = 0.0;
+    ros::Time current_time = ros::Time::now();
+    if(control_method == Config::RobotController::PID) {
+        control_output = calculatePIDControlOutput(feedbackForce, current_time);
+    } else if(control_method == Config::RobotController::FIS) {
+        control_output = calculatePIDControlOutput(feedbackForce, current_time);
+    }
+
+    return control_output;
+}

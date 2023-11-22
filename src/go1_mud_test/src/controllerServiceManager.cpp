@@ -3,7 +3,7 @@
 
 
 bool ControllerServiceManager::class_initialized = false;
-bool ControllerServiceManager::control_method = Config::RobotController::PID;
+std::string ControllerServiceManager::control_method = Config::RobotController::PID;
 
 ControllerServiceManager& ControllerServiceManager::getInstance() {
   static ControllerServiceManager instance;
@@ -22,12 +22,12 @@ ControllerServiceManager& ControllerServiceManager::getInstance(ros::NodeHandle&
 void ControllerServiceManager::initialize(ros::NodeHandle& nh, std::string rname) {
     nh_ = nh;
     robot_name = rname;
-    action_service_server = nh_.advertiseService(robot_name + "/controller", &ControllerServiceManager::controllerCallback, this);
+    controller_service_server = nh_.advertiseService(robot_name + "/controller", &ControllerServiceManager::controllerCallback, this);
 }
 
 bool ControllerServiceManager::controllerCallback(
-    go1_mud_test::ActionService::Request& req,
-    go1_mud_test::ActionService::Response& res) {
+    go1_mud_test::ControllerService::Request& req,
+    go1_mud_test::ControllerService::Response& res) {
     res.success = true;  
     if (req.controller == Config::RobotController::PID) {
         setControlMethod(Config::RobotController::PID);      
@@ -38,6 +38,11 @@ bool ControllerServiceManager::controllerCallback(
     }
 
     return res.success; 
+}
+
+
+std::string ControllerServiceManager::getControlMethod() {
+   return control_method;
 }
 
 void ControllerServiceManager::setControlMethod(std::string method) {

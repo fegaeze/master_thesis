@@ -30,8 +30,8 @@ class RobotStandAction : public RobotActionController {
         BT::NodeStatus onRunning() override;
         void onHalted() override;
 
-    private:
         static const std::vector<double> STAND_JOINT_POSITIONS;
+    private:
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -44,8 +44,8 @@ class RobotLieDownAction : public RobotActionController {
         BT::NodeStatus onRunning() override;
         void onHalted() override;
 
-    private:
         static const std::vector<double> LIE_DOWN_JOINT_POSITIONS;
+    private:
         void handleKeyPressed(bool pressed) override;
 };
 
@@ -60,6 +60,7 @@ class RobotDropFootAction : public RobotActionController {
 
     private:
         void handleKeyPressed(bool pressed) override;
+        static double initial_foot_position; 
 };
 
 class RobotFrRaiseAction : public RobotActionController {

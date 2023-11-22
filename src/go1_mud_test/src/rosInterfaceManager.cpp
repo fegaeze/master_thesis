@@ -94,7 +94,6 @@ void ROSInterfaceManager::setPublishers() {
 
 void ROSInterfaceManager::setRobotCmd(int joint, double pos) {
   robot_cmd.motorCmd[joint].q = pos;
-  ROS_INFO("ROBOT POSITION PASSED IN: %f", pos);
 }
 
 void ROSInterfaceManager::setRobotParams() {

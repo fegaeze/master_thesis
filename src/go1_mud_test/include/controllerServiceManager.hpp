@@ -23,13 +23,13 @@ class ControllerServiceManager {
         ControllerServiceManager& operator=(const ControllerServiceManager&) = delete;
 
         static bool class_initialized;
-        static bool control_method;
+        static std::string control_method;
         std::string robot_name;
 
         ros::NodeHandle nh_;
-        ros::ServiceServer Controller_service_server;
+        ros::ServiceServer controller_service_server;
 
-        bool ControllerCallback(
+        bool controllerCallback(
             go1_mud_test::ControllerService::Request& req,
             go1_mud_test::ControllerService::Response& res
         );

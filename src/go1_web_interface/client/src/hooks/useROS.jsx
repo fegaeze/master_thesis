@@ -55,7 +55,6 @@ function useROS() {
     try {
       const { action, id } = serviceObj;
       const request = new ServiceRequest({ action });
-
       if(id === "CONTROLLER") {
         controllerService.callService(request, callback);
       } else {
@@ -73,7 +72,7 @@ function useROS() {
     handleDisconnect,
     sendServiceRequest,
     ros: ros.ROS,
-    isConnected: true,
+    isConnected: ros.isConnected,
     error: ros.error,
     url: ros.url,
   };
