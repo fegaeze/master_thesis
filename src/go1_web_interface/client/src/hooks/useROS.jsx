@@ -1,9 +1,20 @@
 import React, { useContext } from "react";
 import { ServiceRequest } from "roslib";
 import { ROSContext, ROSProvider } from "../context/ROSContext";
+import { 
+  ACTION_SERVICE_ID, 
+  CONTROLLER_TYPE_SERVICE_ID,
+  PID_TUNING_SERVICE_ID 
+} from "../config";
 
 function useROS() {
-  const [ros, actionService, controllerService, setROS] = useContext(ROSContext);
+  const [
+    ros, 
+    actionService, 
+    controllerTypeService,
+    pidTuningService, 
+    setROS
+] = useContext(ROSContext);
 
   function changeUrl(new_url) {
     setROS((ros) => ({ ...ros, url: new_url }));
@@ -53,11 +64,17 @@ function useROS() {
 
   const sendServiceRequest = (serviceObj, callback) => {
     try {
-      const { action, id } = serviceObj;
-      const request = new ServiceRequest({ action });
-      if(id === "CONTROLLER") {
-        controllerService.callService(request, callback);
-      } else {
+      const { action, id, gains } = serviceObj;
+
+      let request;
+      if(id === CONTROLLER_TYPE_SERVICE_ID) {
+        request = new ServiceRequest({ type: action });
+        controllerTypeService.callService(request, callback);
+      } else if(id === PID_TUNING_SERVICE_ID) {
+        request = new ServiceRequest({ pid: gains });
+        pidTuningService.callService(request, callback);
+      } else if(id === ACTION_SERVICE_ID) {
+        request = new ServiceRequest({ action });
         actionService.callService(request, callback);
       }
 
@@ -72,7 +89,7 @@ function useROS() {
     handleDisconnect,
     sendServiceRequest,
     ros: ros.ROS,
-    isConnected: ros.isConnected,
+    isConnected: true,
     error: ros.error,
     url: ros.url,
   };

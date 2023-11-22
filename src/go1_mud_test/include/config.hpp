@@ -30,7 +30,20 @@ namespace Config {
     }
 
     namespace RobotController {
-        const std::string FIS = "FIS";
-        const std::string PID = "PID";
+        namespace TYPE {
+            const std::string FIS = "FIS";
+            const std::string PID = "PID";
+        }
+
+        namespace PID {
+            const std::map<std::string, double> gains = {
+                {"kp_push", 0.05},
+                {"kp_pull", 0.05},
+                {"ki_push", 0},
+                {"ki_pull", 0},
+                {"kd_push", 0},
+                {"kd_pull", 0},
+            };
+        }
     }
 }

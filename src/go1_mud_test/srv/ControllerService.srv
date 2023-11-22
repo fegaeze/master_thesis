@@ -1,5 +1,0 @@
-string controller  # Controllers => PID, PIS
----
-bool success
-string message
-

@@ -73,15 +73,6 @@ class RobotActionController : public BT::StatefulActionNode {
         double prev_error = Config::FORCE_CMD_SETPOINT;
         ros::Time prev_time = ros::Time::now();
 
-        const double P_PULL = 0.05;
-        const double P_PUSH = 0.05;
-
-        const double I_PULL = 0;
-        const double I_PUSH = 0;
-
-        const double D_PULL = 0;
-        const double D_PUSH = 0;
-
         tf2::Vector3 calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg);
         double calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3);
         bool isJointsCloseToTarget(const unitree_legged_msgs::LowState& currentState, const std::vector<double>& targetPos);

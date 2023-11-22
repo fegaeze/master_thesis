@@ -349,14 +349,13 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
     double command = 0;
 
     // Determine the control action based on the feedback
+    std::map<std::string, double> gains = controller_service_manager.getPIDGains();
     if (std::abs(feedbackForce) > Config::FORCE_CMD_SETPOINT) {
         // Calculate the control command for pulling action
-        command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
-        // command = (P_PULL * error) + (D_PULL * error_rate) + (I_PULL * error_cumulative);
+        command = (gains["kp_pull"] * error) + (gains["kd_pull"] * error_rate) + (gains["ki_pull"] * error_cumulative);
     } else {
         // Calculate the control command for pushing action
-        command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
-        // command = (P_PUSH * error) + (D_PUSH * error_rate) + (I_PUSH * error_cumulative);
+        command = (gains["kp_push"] * error) + (gains["kd_push"] * error_rate) + (gains["ki_push"] * error_cumulative);
     }
 
     // Store the current command, error, and time for the next iteration
@@ -373,9 +372,9 @@ double RobotActionController::runControlMethod(double feedbackForce) {
 
     double control_output = 0.0;
     ros::Time current_time = ros::Time::now();
-    if(control_method == Config::RobotController::PID) {
+    if(control_method == Config::RobotController::TYPE::PID) {
         control_output = calculatePIDControlOutput(feedbackForce, current_time);
-    } else if(control_method == Config::RobotController::FIS) {
+    } else if(control_method == Config::RobotController::TYPE::FIS) {
         control_output = calculatePIDControlOutput(feedbackForce, current_time);
     }
 

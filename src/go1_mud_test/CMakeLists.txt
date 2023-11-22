@@ -23,7 +23,8 @@ find_package(Eigen3 REQUIRED)
 add_service_files(
   FILES
   ActionService.srv
-  ControllerService.srv
+  ControllerTypeService.srv
+  PIDTuningService.srv
 )
 
 generate_messages(
