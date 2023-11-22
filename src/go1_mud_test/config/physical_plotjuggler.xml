@@ -3,23 +3,30 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <Tab tab_name="tab1" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="0.5;0.5" count="2">
+    <DockSplitter orientation="-" sizes="0.333333;0.333333;0.333333" count="3">
      <DockArea name="...">
       <plot mode="TimeSeries" style="Lines">
-       <range top="1.190014" bottom="-2.820217" right="4.231881" left="0.000000"/>
+       <range left="0.000000" top="1.246250" right="15.488377" bottom="-2.796250"/>
        <limitY/>
-       <curve name="/low_cmd/motorCmd.0/q" color="#1f77b4"/>
-       <curve name="/low_cmd/motorCmd.1/q" color="#d62728"/>
-       <curve name="/low_cmd/motorCmd.2/q" color="#1ac938"/>
+       <curve color="#1f77b4" name="/low_cmd/motorCmd.0/q"/>
+       <curve color="#d62728" name="/low_cmd/motorCmd.1/q"/>
+       <curve color="#1ac938" name="/low_cmd/motorCmd.2/q"/>
       </plot>
      </DockArea>
      <DockArea name="...">
       <plot mode="TimeSeries" style="Lines">
-       <range top="1.190078" bottom="-2.820260" right="4.206970" left="0.003188"/>
+       <range left="0.043649" top="1.242004" right="15.457585" bottom="-2.795060"/>
        <limitY/>
-       <curve name="/low_state/motorState.0/q" color="#ff7f0e"/>
-       <curve name="/low_state/motorState.1/q" color="#f14cc1"/>
-       <curve name="/low_state/motorState.2/q" color="#9467bd"/>
+       <curve color="#ff7f0e" name="/low_state/motorState.0/q"/>
+       <curve color="#f14cc1" name="/low_state/motorState.1/q"/>
+       <curve color="#9467bd" name="/low_state/motorState.2/q"/>
+      </plot>
+     </DockArea>
+     <DockArea name="...">
+      <plot mode="TimeSeries" style="Lines">
+       <range left="0.227786" top="-0.030751" right="15.484053" bottom="-0.242557"/>
+       <limitY/>
+       <curve color="#1f77b4" name="/ati_ft_data/wrench/force/z"/>
       </plot>
      </DockArea>
     </DockSplitter>

@@ -60,7 +60,7 @@ class RobotDropFootAction : public RobotActionController {
 
     private:
         void handleKeyPressed(bool pressed) override;
-        static double initial_foot_position; 
+        static Eigen::Vector3d initial_foot_position; 
 };
 
 class RobotFrRaiseAction : public RobotActionController {

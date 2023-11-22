@@ -1,7 +1,7 @@
 #include "robotActions.hpp"
 
 
-double RobotDropFootAction::initial_foot_position = 0.0;
+Eigen::Vector3d RobotDropFootAction::initial_foot_position = Eigen::Vector3d();
 std::vector<double> RobotGoToCogAction::cog_position = std::vector<double>();
 std::vector<double> RobotFrRaiseAction::fr_foot_target_position = std::vector<double>();
 
@@ -85,6 +85,10 @@ void RobotDropFootAction::handleKeyPressed(bool pressed) {
 BT::NodeStatus RobotDropFootAction::onStart() {
     ROS_INFO("GO1_DROP_FOOT_ACTION");
     ros::Time current_time = ros::Time::now();
+
+    Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
+    initial_foot_position = footPosition;
+
     configurePID(current_time);
     return actionStart();
 }
@@ -94,7 +98,7 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
     Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
 
     if(contact_initiated == false && force_feedback > 2.0) {
-        initial_foot_position = std::abs(footPosition.z());
+        initial_foot_position = footPosition;
         contact_initiated = true;
     }
 
@@ -102,12 +106,21 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
     ROS_INFO("The current foot position: %f", footPosition.z());
     ROS_INFO("Force Feedback (f): %f", force_feedback);
 
+    double percent = 0.0;
     if(contact_initiated) {
         double control_cmd = runControlMethod(force_feedback);
         ROS_INFO("The control command is: %f", control_cmd);
+
+        percent = (std::abs(footPosition.z()) - std::abs(initial_foot_position.z())) / (std::abs(Config::LEG_Z_POS_LIMIT) - std::abs(initial_foot_position.z()));
+        footPosition.x() = (initial_foot_position.x() * (1 - percent)) + (Config::LEG_X_POS_LIMIT * percent);
+        footPosition.y() = (initial_foot_position.y() * (1 - percent)) + (Config::LEG_Y_POS_LIMIT * percent);
         footPosition.z() -= (control_cmd / 100);
     } else {
+        footPosition.x() = initial_foot_position.x();
+        footPosition.y() = initial_foot_position.y();
         footPosition.z() -= (0.1 / 50);
+        ROS_INFO("The X position is: %f", footPosition.x());
+        ROS_INFO("The Y position is: %f", footPosition.y());
     }
 
     ROS_INFO("The proposed foot position: %f", footPosition.z());
@@ -129,7 +142,6 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
     }
 
     if(contact_initiated) {
-        double percent = (std::abs(footPosition.z()) - initial_foot_position) / (std::abs(Config::LEG_Z_POS_LIMIT) - initial_foot_position);
         for (int j = 3; j < Config::NUM_OF_JOINTS; j++) {
             ros_manager.setRobotCmd(j, (RobotActionController::last_known_state.motorState[j].q * (1 - percent)) + (RobotStandAction::STAND_JOINT_POSITIONS[j] * percent));
         }
