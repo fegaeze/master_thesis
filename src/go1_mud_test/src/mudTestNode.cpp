@@ -1,5 +1,7 @@
 #include <ros/package.h>
 
+#include "unitree_legged_sdk/unitree_legged_sdk.h"
+
 #include "actionServiceManager.hpp"
 #include "controllerServiceManager.hpp"
 #include "rosInterfaceManager.hpp"
@@ -44,13 +46,31 @@ int main(int argc, char **argv) {
         ROS_ERROR("Failed to retrieve path for package '%s'", package_name.c_str());
     }
 
+    UNITREE_LEGGED_SDK::Safety safe_mode(UNITREE_LEGGED_SDK::LeggedType::Go1);
+
     while(ros::ok()) {
         tree.tickOnce();
+
+        std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> safe_mode_params = ros_manager.getSafeModeParams();
+
+        UNITREE_LEGGED_SDK::LowCmd robot_cmd = std::get<0>(safe_mode_params);
+        UNITREE_LEGGED_SDK::LowState robot_state = std::get<1>(safe_mode_params);
+
+        safe_mode.PositionLimit(robot_cmd);
+        int power_safe_mode = safe_mode.PowerProtect(robot_cmd, robot_state, 1);
+        int position_safe_mode = safe_mode.PositionProtect(robot_cmd, robot_state, 0.0025);
+
+        if(power_safe_mode < 0 || position_safe_mode < 0) {
+            ROS_INFO("Safety Mode Triggered");
+            break;
+        }
+
         ros_manager.publishRobotCmd();
-        ros::spinOnce();
         rate.sleep();
+        ros::spinOnce();
     }
 
 
+    ros::shutdown();
     return 0;
 }

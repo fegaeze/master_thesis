@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 
 #include "behaviortree_cpp/bt_factory.h"
-#include "unitree_legged_sdk/unitree_legged_sdk.h"
 
 #include "config.hpp"
 #include "go1_mud_test/ControllerTypeService.h"

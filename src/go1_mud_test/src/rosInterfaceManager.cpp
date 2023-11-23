@@ -62,10 +62,29 @@ void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string rname) {
   }
 
   for(int i=0; i<Config::NUM_OF_JOINTS; i++){
-    robot_cmd.motorCmd[i].q = robot_state.motorState[i].q;
+    setRobotCmd(i, robot_state.motorState[i].q);
   }
 }
 
+
+std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> ROSInterfaceManager::getSafeModeParams() {
+
+  UNITREE_LEGGED_SDK::LowCmd command;
+  UNITREE_LEGGED_SDK::LowState state;
+
+  for(int i=0; i<12; i++){
+    command.motorCmd[i].q = robot_cmd.motorCmd[i].q;
+    command.motorCmd[i].dq = robot_cmd.motorCmd[i].dq;
+    command.motorCmd[i].Kp = robot_cmd.motorCmd[i].Kp;
+    command.motorCmd[i].Kd = robot_cmd.motorCmd[i].Kd;
+    command.motorCmd[i].tau = robot_cmd.motorCmd[i].tau;
+    state.motorState[i].q = robot_state.motorState[i].q;
+  }
+
+  std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> safe_mode_params(command, state);
+
+  return safe_mode_params;
+}
 
 unitree_legged_msgs::LowState ROSInterfaceManager::getRobotState() {
   return robot_state;

@@ -21,7 +21,6 @@
   <depend>gazebo_ros</depend>
   <depend>controller_manager</depend>
   <depend>joint_state_controller</depend>
-  <depend>pyserial</depend>
   <depend>robot_state_publisher</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>

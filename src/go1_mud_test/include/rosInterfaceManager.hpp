@@ -18,6 +18,7 @@ class ROSInterfaceManager {
         static ROSInterfaceManager& getInstance(ros::NodeHandle& nh, std::string rname);
         
         double getCurrentForce();
+        std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> getSafeModeParams();
         unitree_legged_msgs::LowState getRobotState();
 
         void initialize(ros::NodeHandle& nh, std::string rname);

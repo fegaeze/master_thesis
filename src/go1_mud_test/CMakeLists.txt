@@ -68,7 +68,23 @@ add_dependencies(rosInterfaceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_
 
 add_executable(go1_mud_test_node src/mudTestNode.cpp)
 add_dependencies(go1_mud_test_node ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64.*")
+  set(ARCH amd64)
+else()
+  set(ARCH arm64)
+endif()
+
+# Find and link the unitree_legged_sdk library
+find_library(
+  UNITREE_LEGGED_SDK_LIBRARY 
+  NAMES unitree_legged_sdk 
+  PATHS ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/lib/${ARCH}
+)
+
+# Link other libraries
 target_link_libraries(go1_mud_test_node 
+  ${UNITREE_LEGGED_SDK_LIBRARY}
   ${catkin_LIBRARIES} 
   actionServiceManager
   controllerServiceManager 
