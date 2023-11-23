@@ -71,7 +71,7 @@ function useROS() {
         request = new ServiceRequest({ type: action });
         controllerTypeService.callService(request, callback);
       } else if(id === PID_TUNING_SERVICE_ID) {
-        request = new ServiceRequest({ pid: gains });
+        request = new ServiceRequest(gains);
         pidTuningService.callService(request, callback);
       } else if(id === ACTION_SERVICE_ID) {
         request = new ServiceRequest({ action });
@@ -89,7 +89,7 @@ function useROS() {
     handleDisconnect,
     sendServiceRequest,
     ros: ros.ROS,
-    isConnected: true,
+    isConnected: ros.isConnected,
     error: ros.error,
     url: ros.url,
   };

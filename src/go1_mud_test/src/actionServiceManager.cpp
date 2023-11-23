@@ -37,6 +37,7 @@ bool ActionServiceManager::actionCallback(
     go1_mud_test::ActionService::Request& req,
     go1_mud_test::ActionService::Response& res) {
     res.success = true;  
+
     if (req.action == Config::RobotAction::STAND) {
         setStandKeyPressed(true);      
     } else if (req.action == Config::RobotAction::LIE_DOWN) {

@@ -3,7 +3,7 @@
 
 
 bool ControllerServiceManager::class_initialized = false;
-
+std::map<std::string, double> ControllerServiceManager::pid_gains = Config::RobotController::PID::gains;
 ControllerServiceManager& ControllerServiceManager::getInstance() {
   static ControllerServiceManager instance;
   return instance;
@@ -21,8 +21,9 @@ ControllerServiceManager& ControllerServiceManager::getInstance(ros::NodeHandle&
 void ControllerServiceManager::initialize(ros::NodeHandle& nh, std::string rname) {
     nh_ = nh;
     robot_name = rname;
-    nh_.advertiseService(robot_name + "/controller/type", &ControllerServiceManager::controllerTypeServiceCallback, this);
-    nh_.advertiseService(robot_name + "/controller/pid/gains", &ControllerServiceManager::pidTuningServiceCallback, this);
+
+    controller_type_service_server = nh_.advertiseService(robot_name + "/controller/type", &ControllerServiceManager::controllerTypeServiceCallback, this);
+    pid_tuning_service_server = nh_.advertiseService(robot_name + "/controller/pid/gains", &ControllerServiceManager::pidTuningServiceCallback, this);
 }
 
 bool ControllerServiceManager::controllerTypeServiceCallback(
@@ -50,7 +51,8 @@ bool ControllerServiceManager::pidTuningServiceCallback(
     pid_gains["ki_pull"] = req.ki_pull;
     pid_gains["kd_pull"] = req.kd_pull;
 
-    return true; 
+    res.success = true;
+    return res.success; 
 }
 
 

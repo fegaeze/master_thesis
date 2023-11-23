@@ -94,7 +94,7 @@ BT::NodeStatus RobotDropFootAction::onStart() {
 }
 
 BT::NodeStatus RobotDropFootAction::onRunning() {
-    double force_feedback = std::abs(ros_manager.getCurrentForce());
+    double force_feedback = -ros_manager.getCurrentForce();
     Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
 
     if(contact_initiated == false && force_feedback > 2.0) {

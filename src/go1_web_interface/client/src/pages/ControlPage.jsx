@@ -15,10 +15,10 @@ const initialInputGains = {
 }
 
 const initialGains = {
-  kp_push: 0.0,
+  kp_push: 0.05,
   ki_push: 0.0,
   kd_push: 0.0,
-  kp_pull: 0.0,
+  kp_pull: 0.05,
   ki_pull: 0.0,
   kd_pull: 0.0
 }
@@ -26,26 +26,16 @@ const initialGains = {
 const ControlPage = () => {
   const { sendServiceRequest } = useROS();
 
-  const [servicePayload, setServicePayload] = useState({
-    id: null,
-    action: null,
-    gains: null
-  });
-
   const [currentGains, setCurrentGains] = useState(initialGains);
   const [pidGains, setPIDGains] = useState(initialInputGains);
 
-  useEffect(() => {
-    sendServiceRequest(servicePayload, res => {
-      console.log("Service Request Response", res);
-    });
-  }, [setServicePayload])
-
   const handleCallToActionBtnClick = (actionKey, actionID) => {
-    setServicePayload({
-      ...servicePayload,
-      action: actionKey,
-      id: actionID
+    handleServiceRequest(actionKey, null, actionID);
+  }
+
+  const handleServiceRequest = (action, gains, id) => {
+    sendServiceRequest({ action, gains, id }, res => {
+      console.log("Service Request Response", res);
     });
   }
 
@@ -61,12 +51,7 @@ const ControlPage = () => {
       kd_pull: pidGains["kd_pull"] === '' ? currentGains["kd_pull"]: Number(pidGains["kd_pull"])
     }
 
-    setServicePayload({
-      ...servicePayload,
-      gains, 
-      id: PID_TUNING_SERVICE_ID
-    });
-
+    handleServiceRequest(null, gains, PID_TUNING_SERVICE_ID);
     setCurrentGains(gains);
     setPIDGains(initialInputGains);
   }

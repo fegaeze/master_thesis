@@ -26,10 +26,14 @@ class ControllerServiceManager {
         ControllerServiceManager& operator=(const ControllerServiceManager&) = delete;
 
         static bool class_initialized;
+        static std::map<std::string, double> pid_gains;
+        
         std::string control_method = Config::RobotController::TYPE::PID;
         std::string robot_name;
 
-        std::map<std::string, double> pid_gains = Config::RobotController::PID::gains;
+        ros::ServiceServer controller_type_service_server;
+        ros::ServiceServer pid_tuning_service_server;
+
         ros::NodeHandle nh_;
 
         bool controllerTypeServiceCallback(

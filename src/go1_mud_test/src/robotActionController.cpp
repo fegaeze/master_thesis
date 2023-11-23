@@ -337,9 +337,9 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
     ROS_INFO("ERROR: %f", error);
 
     // Check for a sign change in the error, reset integral term if sign flips
-    if ((error * prev_error) < 0) {
-        error_cumulative = 0;
-    }
+    // if ((error * prev_error) < 0) {
+    //     error_cumulative = 0;
+    // }
 
     // ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
     // Update the integral term (anti-windup mechanism)
@@ -350,11 +350,25 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
 
     // Determine the control action based on the feedback
     std::map<std::string, double> gains = controller_service_manager.getPIDGains();
-    if (std::abs(feedbackForce) > Config::FORCE_CMD_SETPOINT) {
+    ROS_INFO("KP Pull Gains: %f", gains["kp_pull"]);
+    ROS_INFO("KP Push Gains: %f", gains["kp_push"]);
+    ROS_INFO("KI Pull Gains: %f", gains["ki_pull"]);
+    ROS_INFO("KI Push Gains: %f", gains["ki_push"]);
+    ROS_INFO("KD Pull Gains: %f", gains["kd_pull"]);
+    ROS_INFO("KD Push Gains: %f", gains["kd_push"]);
+    ROS_INFO("===================================");
+
+    if (feedbackForce < -Config::FORCE_CMD_SETPOINT) {
         // Calculate the control command for pulling action
+        ROS_INFO("P: %f", gains["kp_pull"] * error);
+        ROS_INFO("I: %f", gains["kd_pull"] * error_rate);
+        ROS_INFO("D: %f", gains["ki_pull"] * error_cumulative);
         command = (gains["kp_pull"] * error) + (gains["kd_pull"] * error_rate) + (gains["ki_pull"] * error_cumulative);
     } else {
         // Calculate the control command for pushing action
+        ROS_INFO("P: %f", gains["kp_push"] * error);
+        ROS_INFO("I: %f", gains["kd_push"] * error_rate);
+        ROS_INFO("D: %f", gains["ki_push"] * error_cumulative);
         command = (gains["kp_push"] * error) + (gains["kd_push"] * error_rate) + (gains["ki_push"] * error_cumulative);
     }
 
