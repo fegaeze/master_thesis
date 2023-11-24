@@ -66,26 +66,6 @@ void ROSInterfaceManager::initialize(ros::NodeHandle& nh, std::string rname) {
   }
 }
 
-
-std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> ROSInterfaceManager::getSafeModeParams() {
-
-  UNITREE_LEGGED_SDK::LowCmd command;
-  UNITREE_LEGGED_SDK::LowState state;
-
-  for(int i=0; i<12; i++){
-    command.motorCmd[i].q = robot_cmd.motorCmd[i].q;
-    command.motorCmd[i].dq = robot_cmd.motorCmd[i].dq;
-    command.motorCmd[i].Kp = robot_cmd.motorCmd[i].Kp;
-    command.motorCmd[i].Kd = robot_cmd.motorCmd[i].Kd;
-    command.motorCmd[i].tau = robot_cmd.motorCmd[i].tau;
-    state.motorState[i].q = robot_state.motorState[i].q;
-  }
-
-  std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> safe_mode_params(command, state);
-
-  return safe_mode_params;
-}
-
 unitree_legged_msgs::LowState ROSInterfaceManager::getRobotState() {
   return robot_state;
 }
@@ -97,6 +77,7 @@ double ROSInterfaceManager::getCurrentForce() {
 void ROSInterfaceManager::setPublishers() {
   joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/" + robot_name + "/joint_states", 1);
   real_robot_cmd_pub = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
+  controller_data_analysis_pub = nh_.advertise<go1_mud_test::ControllerData>("/controller/data_analysis", 1);
   sim_robot_cmd_pub[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_hip_controller/command", 1);
   sim_robot_cmd_pub[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_thigh_controller/command", 1);
   sim_robot_cmd_pub[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_calf_controller/command", 1);
@@ -156,6 +137,21 @@ void ROSInterfaceManager::publishRobotCmd() {
     sim_robot_cmd_pub[m].publish(robot_cmd.motorCmd[m]);
   }
 }
+
+void ROSInterfaceManager::publishControllerData(
+  double force_error, double current_force, double foot_displacement, double ctrl_output, double initial_position, double current_position) {
+  go1_mud_test::ControllerData data;
+
+  data.force_error = force_error;
+  data.current_force = current_force;
+  data.foot_displacement = foot_displacement;
+  data.ctrl_output = ctrl_output;
+  data.initial_position = initial_position;
+  data.current_position = current_position;
+  
+  controller_data_analysis_pub.publish(data);
+}
+
 
 
 /** CALLBACK METHODS */

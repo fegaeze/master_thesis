@@ -8,6 +8,7 @@
 #include "sensor_msgs/JointState.h"
 #include "unitree_legged_msgs/LowCmd.h"
 #include "unitree_legged_msgs/LowState.h"
+#include "go1_mud_test/ControllerData.h"
 
 #include "config.hpp"
 
@@ -18,10 +19,10 @@ class ROSInterfaceManager {
         static ROSInterfaceManager& getInstance(ros::NodeHandle& nh, std::string rname);
         
         double getCurrentForce();
-        std::tuple<UNITREE_LEGGED_SDK::LowCmd, UNITREE_LEGGED_SDK::LowState> getSafeModeParams();
         unitree_legged_msgs::LowState getRobotState();
 
         void initialize(ros::NodeHandle& nh, std::string rname);
+        void publishControllerData(double force_error, double current_force, double foot_displacement, double ctrl_output, double initial_position, double current_position);
         void publishRobotCmd();
         void setRobotCmd(int joint, double pos);
         void setRobotParams();
@@ -39,7 +40,7 @@ class ROSInterfaceManager {
         static sensor_msgs::JointState joint_state;
         
         ros::NodeHandle nh_;
-        ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS];
+        ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS], controller_data_analysis_pub;
         ros::Subscriber imu_sub, force_sub, real_robot_state_sub, sim_robot_state_sub[Config::NUM_OF_JOINTS];
 
         std::string robot_name;

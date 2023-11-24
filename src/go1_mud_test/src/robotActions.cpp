@@ -108,7 +108,9 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
 
     double percent = 0.0;
     if(contact_initiated) {
+
         double control_cmd = runControlMethod(force_feedback);
+
         ROS_INFO("The control command is: %f", control_cmd);
 
         percent = (std::abs(footPosition.z()) - std::abs(initial_foot_position.z())) / (std::abs(Config::LEG_Z_POS_LIMIT) - std::abs(initial_foot_position.z()));
@@ -125,7 +127,7 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
 
     ROS_INFO("The proposed foot position: %f", footPosition.z());
     ROS_INFO("================================================");
-    ROS_INFO("                                                  ");
+    ROS_INFO("                                                ");
 
     if(footPosition.z() <= Config::LEG_Z_POS_LIMIT) {
         actionHalted();

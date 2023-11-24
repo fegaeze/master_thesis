@@ -20,6 +20,11 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 
+add_message_files(
+  FILES
+  ControllerData.msg
+)
+
 add_service_files(
   FILES
   ActionService.srv
@@ -40,6 +45,7 @@ catkin_package(
 
 catkin_install_python(PROGRAMS
   scripts/force_sensor_node.py
+  scripts/controller_data_analysis.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -1,0 +1,6 @@
+float32 force_error
+float32 current_force
+float32 foot_displacement
+float32 ctrl_output
+float32 initial_position
+float32 current_position
