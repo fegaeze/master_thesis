@@ -317,7 +317,7 @@ void RobotActionController::configurePID(ros::Time& current_time) {
     prev_error = Config::FORCE_CMD_SETPOINT;
 }
 
-double RobotActionController::calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime) {
+double RobotActionController::calculatePIDControlOutput(double feedbackForce, double error, ros::Time& currentTime) {
     // Calculate time elapsed since the previous update
     ros::Duration time_elapsed = currentTime - prev_time;
     double delta_time = time_elapsed.toSec() * 1000.0;
@@ -326,9 +326,6 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
     if (delta_time == 0) {
         return prev_command;
     }
-
-    // Calculate the error between the setpoint and feedback
-    double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
 
     // Calculate the error rate (derivative term)
     double error_rate = (error - prev_error) / delta_time;
@@ -381,15 +378,52 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, ro
     return command;
 }
 
-double RobotActionController::runControlMethod(double feedbackForce) {
+
+void RobotActionController::configureFIS() {
+    mean_displacement = 0.0;
+    mean_force = 0.0;
+    num_data_points = 0.0;
+    numerator = 0.0;
+    denominator = 0.0;
+}
+
+void RobotActionController::updateStiffness(double foot_displacement, double current_force) {
+    ++num_data_points;
+
+    mean_displacement = ((num_data_points - 1) * mean_displacement + foot_displacement) / num_data_points;
+    mean_force = ((num_data_points - 1) * mean_force + current_force) / num_data_points;
+
+    numerator += (foot_displacement - mean_displacement) * (current_force - mean_force);
+    denominator += std::pow((foot_displacement - mean_displacement), 2);
+}
+
+double RobotActionController::calculateFISControlOutput(double error, double foot_displacement, double current_force) {
+    
+    double mud_stiffness;
+    updateStiffness(foot_displacement, current_force);
+
+    if (denominator == 0.0 || num_data_points < 2) {
+        mud_stiffness = 0.0;
+    }
+    
+    mud_stiffness = numerator / denominator;
+
+    // // Use an external library (FIS) to compute the control output
+    // double control_output = yourFISLibrary.calculateControlOutput(error, mud_stiffness, foot_displacement);
+    return 0.0;
+}
+
+double RobotActionController::runControlMethod(double feedbackForce, double zPosition) {
     std::string control_method = controller_service_manager.getControlMethod();
 
     double control_output = 0.0;
+    double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
+
     ros::Time current_time = ros::Time::now();
     if(control_method == Config::RobotController::TYPE::PID) {
-        control_output = calculatePIDControlOutput(feedbackForce, current_time);
+        control_output = calculatePIDControlOutput(feedbackForce, error, current_time);
     } else if(control_method == Config::RobotController::TYPE::FIS) {
-        control_output = calculatePIDControlOutput(feedbackForce, current_time);
+        control_output = calculateFISControlOutput(error, zPosition, feedbackForce);
     }
 
     return control_output;

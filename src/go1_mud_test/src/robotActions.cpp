@@ -89,6 +89,7 @@ BT::NodeStatus RobotDropFootAction::onStart() {
     Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
     initial_foot_position = footPosition;
 
+    configureFIS();
     configurePID(current_time);
     return actionStart();
 }
@@ -109,7 +110,7 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
     double percent = 0.0;
     if(contact_initiated) {
 
-        double control_cmd = runControlMethod(force_feedback);
+        double control_cmd = runControlMethod(force_feedback, footPosition.z());
 
         ROS_INFO("The control command is: %f", control_cmd);
 

@@ -51,9 +51,12 @@ class RobotActionController : public BT::StatefulActionNode {
         std::vector<double> getCOGJointPositions(int liftedLeg);
         Eigen::Vector3d getCurrentFootPosition(const std::string& legName);
         void configurePID(ros::Time& current_time);
+        void configureFIS();
+        void updateStiffness(double foot_displacement, double current_force);
 
-        double runControlMethod(double feedbackForce);
-        double calculatePIDControlOutput(double feedbackForce, ros::Time& currentTime);
+        double runControlMethod(double feedbackForce, double zPosition);
+        double calculatePIDControlOutput(double feedbackForce, double error, ros::Time& currentTime);
+        double calculateFISControlOutput(double error, double foot_displacement, double current_force);
         std::vector<double> ikSolver(const Eigen::Vector3d& footPosition, bool isRight);
         void interpolateJoints(std::vector<double>& targetPos);
         void interpolateJoints(const std::vector<double>& targetPos);
@@ -72,6 +75,12 @@ class RobotActionController : public BT::StatefulActionNode {
         double prev_command = 0;
         double prev_error = Config::FORCE_CMD_SETPOINT;
         ros::Time prev_time = ros::Time::now();
+
+        double mean_displacement = 0.0;
+        double mean_force = 0.0;
+        double num_data_points = 0.0;
+        double numerator = 0.0;
+        double denominator = 0.0;
 
         tf2::Vector3 calculateCoGPosition(const std::vector<tf2::Vector3>& feet, int liftedLeg);
         double calculateFeetArea(const tf2::Vector3& p1, const tf2::Vector3& p2, const tf2::Vector3& p3);
