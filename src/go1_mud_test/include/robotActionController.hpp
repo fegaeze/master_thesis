@@ -7,6 +7,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
+#include "evaluatefis.h"
 #include "behaviortree_cpp/action_node.h"
 #include "unitree_legged_msgs/LowState.h"
 
@@ -54,7 +55,7 @@ class RobotActionController : public BT::StatefulActionNode {
         void configureFIS();
         void updateStiffness(double foot_displacement, double current_force);
 
-        double runControlMethod(double feedbackForce, double zPosition);
+        double runControlMethod(double feedbackForce, double initial_position, double current_position);
         double calculatePIDControlOutput(double feedbackForce, double error, ros::Time& currentTime);
         double calculateFISControlOutput(double error, double foot_displacement, double current_force);
         std::vector<double> ikSolver(const Eigen::Vector3d& footPosition, bool isRight);
@@ -78,7 +79,7 @@ class RobotActionController : public BT::StatefulActionNode {
 
         double mean_displacement = 0.0;
         double mean_force = 0.0;
-        double num_data_points = 0.0;
+        int num_data_points = 0;
         double numerator = 0.0;
         double denominator = 0.0;
 

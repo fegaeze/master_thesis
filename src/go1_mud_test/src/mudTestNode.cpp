@@ -1,5 +1,6 @@
 #include <ros/package.h>
 
+#include "evaluatefis_terminate.h"
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
 
 #include "actionServiceManager.hpp"
@@ -55,5 +56,6 @@ int main(int argc, char **argv) {
 
 
     ros::shutdown();
+    evaluatefis_terminate();
     return 0;
 }

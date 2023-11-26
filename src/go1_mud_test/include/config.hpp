@@ -37,12 +37,12 @@ namespace Config {
 
         namespace PID {
             const std::map<std::string, double> gains = {
-                {"kp_push", 0.04},
-                {"kp_pull", 0.005},
-                {"ki_push", 0.0000025},
+                {"kp_push", 0.03},
+                {"kp_pull", 0.00035},
+                {"ki_push", 0.000003},
                 {"ki_pull", 0},
-                {"kd_push", 0.0025},
-                {"kd_pull", 0.0025},
+                {"kd_push", 0.001},
+                {"kd_pull", 0},
             };
         }
     }

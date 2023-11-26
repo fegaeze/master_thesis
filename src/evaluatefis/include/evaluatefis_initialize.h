@@ -1,12 +1,12 @@
 /*
- * File: evaluatefis_terminate.h
+ * File: evaluatefis_initialize.h
  *
  * MATLAB Coder version            : 23.2
- * C/C++ source code generated on  : 24-Nov-2023 19:23:44
+ * C/C++ source code generated on  : 24-Nov-2023 21:31:35
  */
 
-#ifndef EVALUATEFIS_TERMINATE_H
-#define EVALUATEFIS_TERMINATE_H
+#ifndef EVALUATEFIS_INITIALIZE_H
+#define EVALUATEFIS_INITIALIZE_H
 
 /* Include Files */
 #include "rtwtypes.h"
@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern void evaluatefis_terminate(void);
+extern void evaluatefis_initialize(void);
 
 #ifdef __cplusplus
 }
@@ -26,7 +26,7 @@ extern void evaluatefis_terminate(void);
 
 #endif
 /*
- * File trailer for evaluatefis_terminate.h
+ * File trailer for evaluatefis_initialize.h
  *
  * [EOF]
  */

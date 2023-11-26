@@ -331,14 +331,13 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, do
     double error_rate = (error - prev_error) / delta_time;
 
     // Debugging information
-    ROS_INFO("ERROR: %f", error);
+    ROS_INFO("ERROR: %lf", error);
 
     // Check for a sign change in the error, reset integral term if sign flips
     // if ((error * prev_error) < 0) {
     //     error_cumulative = 0;
     // }
 
-    // ROS_INFO("ERROR_CUMULATIVE: %f", error_cumulative);
     // Update the integral term (anti-windup mechanism)
     error_cumulative += error * delta_time;
 
@@ -347,25 +346,12 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, do
 
     // Determine the control action based on the feedback
     std::map<std::string, double> gains = controller_service_manager.getPIDGains();
-    ROS_INFO("KP Pull Gains: %f", gains["kp_pull"]);
-    ROS_INFO("KP Push Gains: %f", gains["kp_push"]);
-    ROS_INFO("KI Pull Gains: %f", gains["ki_pull"]);
-    ROS_INFO("KI Push Gains: %f", gains["ki_push"]);
-    ROS_INFO("KD Pull Gains: %f", gains["kd_pull"]);
-    ROS_INFO("KD Push Gains: %f", gains["kd_push"]);
-    ROS_INFO("===================================");
 
     if (feedbackForce < -Config::FORCE_CMD_SETPOINT) {
         // Calculate the control command for pulling action
-        ROS_INFO("P: %f", gains["kp_pull"] * error);
-        ROS_INFO("I: %f", gains["kd_pull"] * error_rate);
-        ROS_INFO("D: %f", gains["ki_pull"] * error_cumulative);
         command = (gains["kp_pull"] * error) + (gains["kd_pull"] * error_rate) + (gains["ki_pull"] * error_cumulative);
     } else {
         // Calculate the control command for pushing action
-        ROS_INFO("P: %f", gains["kp_push"] * error);
-        ROS_INFO("I: %f", gains["kd_push"] * error_rate);
-        ROS_INFO("D: %f", gains["ki_push"] * error_cumulative);
         command = (gains["kp_push"] * error) + (gains["kd_push"] * error_rate) + (gains["ki_push"] * error_cumulative);
     }
 
@@ -380,21 +366,29 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, do
 
 
 void RobotActionController::configureFIS() {
-    mean_displacement = 0.0;
-    mean_force = 0.0;
-    num_data_points = 0.0;
-    numerator = 0.0;
-    denominator = 0.0;
+    mean_displacement = 0;
+    mean_force = 0;
+    num_data_points = 0;
+    numerator = 0;
+    denominator = 0;
 }
+
 
 void RobotActionController::updateStiffness(double foot_displacement, double current_force) {
     ++num_data_points;
 
-    mean_displacement = ((num_data_points - 1) * mean_displacement + foot_displacement) / num_data_points;
-    mean_force = ((num_data_points - 1) * mean_force + current_force) / num_data_points;
+    // Ensure that foot_displacement is not below the minimum threshold
+    foot_displacement = std::max(foot_displacement, 1e-6);
 
-    numerator += (foot_displacement - mean_displacement) * (current_force - mean_force);
-    denominator += std::pow((foot_displacement - mean_displacement), 2);
+    double delta_displacement = foot_displacement - mean_displacement;
+    mean_displacement += delta_displacement / num_data_points;
+
+    double delta_force = current_force - mean_force;
+    mean_force += delta_force / num_data_points;
+
+    // Use the squared displacement in the numerator and denominator
+    numerator += delta_displacement * delta_force;
+    denominator += delta_displacement * delta_displacement;
 }
 
 double RobotActionController::calculateFISControlOutput(double error, double foot_displacement, double current_force) {
@@ -406,25 +400,48 @@ double RobotActionController::calculateFISControlOutput(double error, double foo
         mud_stiffness = 0.0;
     }
     
-    mud_stiffness = numerator / denominator;
+    mud_stiffness = (numerator / denominator) / 1000;
 
-    // // Use an external library (FIS) to compute the control output
-    // double control_output = yourFISLibrary.calculateControlOutput(error, mud_stiffness, foot_displacement);
-    return 0.0;
+    ROS_INFO("ERROR: %lf", error);
+    ROS_INFO("MUD_STIFFNESS: %lf", mud_stiffness);
+
+    double inputValues[3] = {error, foot_displacement, mud_stiffness}; 
+    double control_output = evaluatefis(inputValues);
+
+    if (std::isnan(control_output)) {
+        return -1.0;
+    }
+
+    return control_output;
 }
 
-double RobotActionController::runControlMethod(double feedbackForce, double zPosition) {
+double RobotActionController::runControlMethod(double feedbackForce, double initial_position, double current_position) {
     std::string control_method = controller_service_manager.getControlMethod();
 
     double control_output = 0.0;
     double error = Config::FORCE_CMD_SETPOINT - feedbackForce;
+    double displacement = std::max(initial_position - current_position, 1e-6);
+
+    updateStiffness(displacement, feedbackForce);
 
     ros::Time current_time = ros::Time::now();
     if(control_method == Config::RobotController::TYPE::PID) {
+        ROS_INFO("PID Controller Running");
         control_output = calculatePIDControlOutput(feedbackForce, error, current_time);
     } else if(control_method == Config::RobotController::TYPE::FIS) {
-        control_output = calculateFISControlOutput(error, zPosition, feedbackForce);
+        ROS_INFO("Fuzzy Controller Running");
+        control_output = calculateFISControlOutput(error, displacement, feedbackForce);
     }
+    control_output /= 100;
+    double mud_stiffness = (numerator / denominator) / 1000;
 
+    // ROS_INFO("======================================");
+    // ROS_INFO("Feedback Force: %lf", feedbackForce);
+    // ROS_INFO("Mud Stiffness: %lf", mud_stiffness);
+    // ROS_INFO("Displacement: %lf", displacement);
+    // ROS_INFO("Control Output: %lf", control_output);
+    // ROS_INFO("======================================");
+
+    ros_manager.publishControllerData(error, feedbackForce, mud_stiffness, displacement, control_output, initial_position, current_position);
     return control_output;
 }

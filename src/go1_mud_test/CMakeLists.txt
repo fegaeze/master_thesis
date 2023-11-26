@@ -53,8 +53,12 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
+  ${CMAKE_SOURCE_DIR}/evaluatefis/include
   ${EIGEN3_INCLUDE_DIRS}
 )
+
+add_library(evaluatefis ${CMAKE_SOURCE_DIR}/evaluatefis/evaluatefis.c)
+add_library(evaluatefis_terminate ${CMAKE_SOURCE_DIR}/evaluatefis/evaluatefis_terminate.c)
 
 add_library(actionServiceManager src/actionServiceManager.cpp)
 add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
@@ -62,7 +66,7 @@ add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}
 add_library(controllerServiceManager src/controllerServiceManager.cpp)
 add_dependencies(controllerServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
-add_library(robotActionController src/robotActionController.cpp)
+add_library(robotActionController src/robotActionController.cpp ${CMAKE_SOURCE_DIR}/evaluatefis/evaluatefis.o ${CMAKE_SOURCE_DIR}/evaluatefis/rt_nonfinite.o)
 add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(robotActions src/robotActions.cpp)
@@ -96,4 +100,6 @@ target_link_libraries(go1_mud_test_node
   controllerServiceManager 
   robotActions 
   rosInterfaceManager
+  evaluatefis
+  evaluatefis_terminate
 )

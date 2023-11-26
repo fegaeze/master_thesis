@@ -3,6 +3,7 @@
 
 
 bool ControllerServiceManager::class_initialized = false;
+std::string ControllerServiceManager::control_method = Config::RobotController::TYPE::PID;
 std::map<std::string, double> ControllerServiceManager::pid_gains = Config::RobotController::PID::gains;
 ControllerServiceManager& ControllerServiceManager::getInstance() {
   static ControllerServiceManager instance;
@@ -33,6 +34,7 @@ bool ControllerServiceManager::controllerTypeServiceCallback(
     if (req.type == Config::RobotController::TYPE::PID) {
         setControlMethod(Config::RobotController::TYPE::PID);      
     } else if (req.type == Config::RobotController::TYPE::FIS) {
+        ROS_INFO("Control Method Set");
         setControlMethod(Config::RobotController::TYPE::FIS);
     } else {
         res.success = false;

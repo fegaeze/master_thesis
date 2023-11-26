@@ -1,6 +1,7 @@
-float32 force_error
-float32 current_force
-float32 foot_displacement
-float32 ctrl_output
-float32 initial_position
-float32 current_position
+float64 force_error
+float64 current_force
+float64 mud_stiffness
+float64 foot_displacement
+float64 ctrl_output
+float64 initial_position
+float64 current_position

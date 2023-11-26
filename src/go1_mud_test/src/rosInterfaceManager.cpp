@@ -11,10 +11,15 @@ Use of this source code is governed by the MPL-2.0 license, see LICENSE.
 using namespace std::chrono_literals;
 
 bool ROSInterfaceManager::class_initialized = false;
-geometry_msgs::WrenchStamped ROSInterfaceManager::robot_force_state = geometry_msgs::WrenchStamped();
+
 sensor_msgs::JointState ROSInterfaceManager::joint_state = sensor_msgs::JointState();
+geometry_msgs::WrenchStamped ROSInterfaceManager::robot_force_state = geometry_msgs::WrenchStamped();
+
 unitree_legged_msgs::LowCmd ROSInterfaceManager::robot_cmd = unitree_legged_msgs::LowCmd();
 unitree_legged_msgs::LowState ROSInterfaceManager::robot_state = unitree_legged_msgs::LowState();
+
+ros::Publisher ROSInterfaceManager::controller_data_analysis_pub;
+
 
 ROSInterfaceManager& ROSInterfaceManager::getInstance() {
   static ROSInterfaceManager instance;
@@ -77,7 +82,8 @@ double ROSInterfaceManager::getCurrentForce() {
 void ROSInterfaceManager::setPublishers() {
   joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/" + robot_name + "/joint_states", 1);
   real_robot_cmd_pub = nh_.advertise<unitree_legged_msgs::LowCmd>("low_cmd", 1);
-  controller_data_analysis_pub = nh_.advertise<go1_mud_test::ControllerData>("/controller/data_analysis", 1);
+  controller_data_analysis_pub = nh_.advertise<go1_mud_test::ControllerData>("controller/data_analysis", 1);
+
   sim_robot_cmd_pub[0] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_hip_controller/command", 1);
   sim_robot_cmd_pub[1] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_thigh_controller/command", 1);
   sim_robot_cmd_pub[2] = nh_.advertise<unitree_legged_msgs::MotorCmd>("/" + robot_name + "_gazebo/FR_calf_controller/command", 1);
@@ -139,16 +145,22 @@ void ROSInterfaceManager::publishRobotCmd() {
 }
 
 void ROSInterfaceManager::publishControllerData(
-  double force_error, double current_force, double foot_displacement, double ctrl_output, double initial_position, double current_position) {
+  double force_error, double current_force, 
+  double mud_stiffness, double foot_displacement, 
+  double ctrl_output, double initial_position, 
+  double current_position
+) {
+  
   go1_mud_test::ControllerData data;
 
   data.force_error = force_error;
   data.current_force = current_force;
   data.foot_displacement = foot_displacement;
   data.ctrl_output = ctrl_output;
+  data.mud_stiffness = mud_stiffness;
   data.initial_position = initial_position;
   data.current_position = current_position;
-  
+
   controller_data_analysis_pub.publish(data);
 }
 

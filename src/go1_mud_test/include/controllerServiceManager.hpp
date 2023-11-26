@@ -27,8 +27,7 @@ class ControllerServiceManager {
 
         static bool class_initialized;
         static std::map<std::string, double> pid_gains;
-        
-        std::string control_method = Config::RobotController::TYPE::PID;
+        static std::string control_method;
         std::string robot_name;
 
         ros::ServiceServer controller_type_service_server;

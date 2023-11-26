@@ -22,7 +22,7 @@ class ROSInterfaceManager {
         unitree_legged_msgs::LowState getRobotState();
 
         void initialize(ros::NodeHandle& nh, std::string rname);
-        void publishControllerData(double force_error, double current_force, double foot_displacement, double ctrl_output, double initial_position, double current_position);
+        void publishControllerData(double force_error, double current_force, double mud_stiffness, double foot_displacement, double ctrl_output, double initial_position, double current_position);
         void publishRobotCmd();
         void setRobotCmd(int joint, double pos);
         void setRobotParams();
@@ -40,8 +40,10 @@ class ROSInterfaceManager {
         static sensor_msgs::JointState joint_state;
         
         ros::NodeHandle nh_;
-        ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS], controller_data_analysis_pub;
+        ros::Publisher joint_state_pub, real_robot_cmd_pub, sim_robot_cmd_pub[Config::NUM_OF_JOINTS];
         ros::Subscriber imu_sub, force_sub, real_robot_state_sub, sim_robot_state_sub[Config::NUM_OF_JOINTS];
+
+        static ros::Publisher controller_data_analysis_pub;
 
         std::string robot_name;
         

@@ -98,35 +98,39 @@ BT::NodeStatus RobotDropFootAction::onRunning() {
     double force_feedback = -ros_manager.getCurrentForce();
     Eigen::Vector3d footPosition = getCurrentFootPosition("FR");
 
-    if(contact_initiated == false && force_feedback > 2.0) {
+    if(contact_initiated == false && force_feedback > 3.0) {
         initial_foot_position = footPosition;
         contact_initiated = true;
     }
-
+    
     ROS_INFO("================================================");
-    ROS_INFO("The current foot position: %f", footPosition.z());
-    ROS_INFO("Force Feedback (f): %f", force_feedback);
+    ROS_INFO("The current foot position: %lf", footPosition.z());
+    ROS_INFO("Force Feedback (f): %lf", force_feedback);
 
     double percent = 0.0;
     if(contact_initiated) {
+        double control_cmd = runControlMethod(force_feedback, initial_foot_position.z(), footPosition.z());
 
-        double control_cmd = runControlMethod(force_feedback, footPosition.z());
+        ROS_INFO("The control command is: %lf", control_cmd);
 
-        ROS_INFO("The control command is: %f", control_cmd);
+        if(control_cmd == -1) {
+            ROS_INFO("Controller returned bad values");
+            return BT::NodeStatus::SUCCESS;
+        }
 
         percent = (std::abs(footPosition.z()) - std::abs(initial_foot_position.z())) / (std::abs(Config::LEG_Z_POS_LIMIT) - std::abs(initial_foot_position.z()));
         footPosition.x() = (initial_foot_position.x() * (1 - percent)) + (Config::LEG_X_POS_LIMIT * percent);
         footPosition.y() = (initial_foot_position.y() * (1 - percent)) + (Config::LEG_Y_POS_LIMIT * percent);
-        footPosition.z() -= (control_cmd / 100);
+        footPosition.z() -= control_cmd;
     } else {
         footPosition.x() = initial_foot_position.x();
         footPosition.y() = initial_foot_position.y();
         footPosition.z() -= (0.1 / 50);
-        ROS_INFO("The X position is: %f", footPosition.x());
-        ROS_INFO("The Y position is: %f", footPosition.y());
+        ROS_INFO("The X position is: %lf", footPosition.x());
+        ROS_INFO("The Y position is: %lf", footPosition.y());
     }
 
-    ROS_INFO("The proposed foot position: %f", footPosition.z());
+    ROS_INFO("The proposed foot position: %lf", footPosition.z());
     ROS_INFO("================================================");
     ROS_INFO("                                                ");
 
