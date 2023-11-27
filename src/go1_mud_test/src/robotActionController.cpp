@@ -415,6 +415,17 @@ double RobotActionController::calculateFISControlOutput(double error, double foo
     return control_output;
 }
 
+double RobotActionController::filter(double input) {
+    if (!controller_initiated) {
+        controller_initial_output = input;
+        controller_initiated = true;
+    } else {
+        controller_initial_output = 0.1 * input + (1 - 0.1) * controller_initial_output;
+    }
+
+    return controller_initial_output;
+}
+
 double RobotActionController::runControlMethod(double feedbackForce, double initial_position, double current_position) {
     std::string control_method = controller_service_manager.getControlMethod();
 
@@ -428,11 +439,13 @@ double RobotActionController::runControlMethod(double feedbackForce, double init
     if(control_method == Config::RobotController::TYPE::PID) {
         ROS_INFO("PID Controller Running");
         control_output = calculatePIDControlOutput(feedbackForce, error, current_time);
+        control_output /= 100;
     } else if(control_method == Config::RobotController::TYPE::FIS) {
         ROS_INFO("Fuzzy Controller Running");
         control_output = calculateFISControlOutput(error, displacement, feedbackForce);
+        control_output = filter(control_output);
     }
-    control_output /= 100;
+    
     double mud_stiffness = (numerator / denominator) / 1000;
 
     // ROS_INFO("======================================");

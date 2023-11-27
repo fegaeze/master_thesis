@@ -15,12 +15,12 @@ const initialInputGains = {
 }
 
 const initialGains = {
-  kp_push: 0.05,
-  ki_push: 0.0,
-  kd_push: 0.0,
-  kp_pull: 0.05,
-  ki_pull: 0.0,
-  kd_pull: 0.0
+  kp_push: 0.03,
+  kp_pull: 0.00035,
+  ki_push: 0.000003,
+  ki_pull: 0,
+  kd_push: 0.001,
+  kd_pull: 0
 }
 
 const ControlPage = () => {

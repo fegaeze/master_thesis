@@ -48,12 +48,15 @@ class RobotActionController : public BT::StatefulActionNode {
         BT::NodeStatus actionRunning(const std::vector<double>& targetPos);
 
         bool contact_initiated = false;
+        bool controller_initiated = false;
+        double controller_initial_output = 0.0;
         
         std::vector<double> getCOGJointPositions(int liftedLeg);
         Eigen::Vector3d getCurrentFootPosition(const std::string& legName);
         void configurePID(ros::Time& current_time);
         void configureFIS();
         void updateStiffness(double foot_displacement, double current_force);
+        double filter(double input);
 
         double runControlMethod(double feedbackForce, double initial_position, double current_position);
         double calculatePIDControlOutput(double feedbackForce, double error, ros::Time& currentTime);

@@ -3,7 +3,7 @@
 
 
 bool ControllerServiceManager::class_initialized = false;
-std::string ControllerServiceManager::control_method = Config::RobotController::TYPE::PID;
+std::string ControllerServiceManager::control_method = Config::RobotController::TYPE::FIS;
 std::map<std::string, double> ControllerServiceManager::pid_gains = Config::RobotController::PID::gains;
 ControllerServiceManager& ControllerServiceManager::getInstance() {
   static ControllerServiceManager instance;
