@@ -2,7 +2,7 @@
 ## Makefile generated for component 'evaluatefis'. 
 ## 
 ## Makefile     : evaluatefis_rtw.mk
-## Generated on : Fri Nov 24 21:31:41 2023
+## Generated on : Tue Dec 05 10:55:18 2023
 ## Final product: ./evaluatefis.a
 ## Product type : static-library
 ## 
@@ -22,12 +22,12 @@ MAKEFILE                  = evaluatefis_rtw.mk
 MATLAB_ROOT               = /MATLAB
 MATLAB_BIN                = /MATLAB/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/glnxa64
-START_DIR                 = /MATLAB\ Drive
+START_DIR                 = /MATLAB\ Drive/evaluatefis
 TGT_FCN_LIB               = ISO_C
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
 MODEL_HAS_DYNAMICALLY_LOADED_SFCNS = 
-RELATIVE_PATH_TO_ANCHOR   = ../../..
+RELATIVE_PATH_TO_ANCHOR   = .
 C_STANDARD_OPTS           = -fwrapv
 CPP_STANDARD_OPTS         = -fwrapv
 MODELLIB                  = evaluatefis.a
@@ -150,7 +150,7 @@ BUILD_TYPE = "Static Library"
 ## INCLUDE PATHS
 ###########################################################################
 
-INCLUDES_BUILDINFO = -I$(START_DIR)/codegen/lib/evaluatefis -I$(START_DIR) -I$(MATLAB_ROOT)/extern/include
+INCLUDES_BUILDINFO = -I$(START_DIR) -I/MATLAB\ Drive -I$(MATLAB_ROOT)/extern/include
 
 INCLUDES = $(INCLUDES_BUILDINFO)
 
@@ -167,7 +167,7 @@ DEFINES = $(DEFINES_CUSTOM) $(DEFINES_STANDARD)
 ## SOURCE FILES
 ###########################################################################
 
-SRCS = $(START_DIR)/codegen/lib/evaluatefis/rt_nonfinite.c $(START_DIR)/codegen/lib/evaluatefis/rtGetNaN.c $(START_DIR)/codegen/lib/evaluatefis/rtGetInf.c $(START_DIR)/codegen/lib/evaluatefis/evaluatefis_initialize.c $(START_DIR)/codegen/lib/evaluatefis/evaluatefis_terminate.c $(START_DIR)/codegen/lib/evaluatefis/evaluatefis.c
+SRCS = $(START_DIR)/rt_nonfinite.c $(START_DIR)/rtGetNaN.c $(START_DIR)/rtGetInf.c $(START_DIR)/evaluatefis_initialize.c $(START_DIR)/evaluatefis_terminate.c $(START_DIR)/evaluatefis.c $(START_DIR)/trimf.c
 
 ALL_SRCS = $(SRCS)
 
@@ -175,7 +175,7 @@ ALL_SRCS = $(SRCS)
 ## OBJECTS
 ###########################################################################
 
-OBJS = rt_nonfinite.o rtGetNaN.o rtGetInf.o evaluatefis_initialize.o evaluatefis_terminate.o evaluatefis.o
+OBJS = rt_nonfinite.o rtGetNaN.o rtGetInf.o evaluatefis_initialize.o evaluatefis_terminate.o evaluatefis.o trimf.o
 
 ALL_OBJS = $(OBJS)
 
@@ -322,34 +322,6 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.cpp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.cp
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.CPP
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/codegen/lib/evaluatefis/%.c++
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
 %.o : $(START_DIR)/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
@@ -378,27 +350,59 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-rt_nonfinite.o : $(START_DIR)/codegen/lib/evaluatefis/rt_nonfinite.c
+%.o : /MATLAB\ Drive/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-rtGetNaN.o : $(START_DIR)/codegen/lib/evaluatefis/rtGetNaN.c
+%.o : /MATLAB\ Drive/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /MATLAB\ Drive/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /MATLAB\ Drive/%.cp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /MATLAB\ Drive/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /MATLAB\ Drive/%.CPP
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /MATLAB\ Drive/%.c++
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+rt_nonfinite.o : $(START_DIR)/rt_nonfinite.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-rtGetInf.o : $(START_DIR)/codegen/lib/evaluatefis/rtGetInf.c
+rtGetNaN.o : $(START_DIR)/rtGetNaN.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-evaluatefis_initialize.o : $(START_DIR)/codegen/lib/evaluatefis/evaluatefis_initialize.c
+rtGetInf.o : $(START_DIR)/rtGetInf.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-evaluatefis_terminate.o : $(START_DIR)/codegen/lib/evaluatefis/evaluatefis_terminate.c
+evaluatefis_initialize.o : $(START_DIR)/evaluatefis_initialize.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-evaluatefis.o : $(START_DIR)/codegen/lib/evaluatefis/evaluatefis.c
+evaluatefis_terminate.o : $(START_DIR)/evaluatefis_terminate.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+evaluatefis.o : $(START_DIR)/evaluatefis.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
+trimf.o : $(START_DIR)/trimf.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 

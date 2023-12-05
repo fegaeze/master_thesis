@@ -2,7 +2,7 @@
  * File: main.c
  *
  * MATLAB Coder version            : 23.2
- * C/C++ source code generated on  : 24-Nov-2023 21:31:35
+ * C/C++ source code generated on  : 05-Dec-2023 10:55:08
  */
 
 /*************************************************************************/
@@ -37,26 +37,9 @@
 #include "rt_nonfinite.h"
 
 /* Function Declarations */
-static void argInit_1x3_real_T(double result[3]);
-
 static double argInit_real_T(void);
 
 /* Function Definitions */
-/*
- * Arguments    : double result[3]
- * Return Type  : void
- */
-static void argInit_1x3_real_T(double result[3])
-{
-  int idx1;
-  /* Loop over the array to initialize each element. */
-  for (idx1 = 0; idx1 < 3; idx1++) {
-    /* Set the value of the array element.
-Change this value to the value that the application requires. */
-    result[idx1] = argInit_real_T();
-  }
-}
-
 /*
  * Arguments    : void
  * Return Type  : double
@@ -92,13 +75,10 @@ You do not need to do this more than one time. */
  */
 void main_evaluatefis(void)
 {
-  double dv[3];
   double y;
   /* Initialize function 'evaluatefis' input arguments. */
-  /* Initialize function input argument 'x'. */
   /* Call the entry-point 'evaluatefis'. */
-  argInit_1x3_real_T(dv);
-  y = evaluatefis(dv);
+  y = evaluatefis(argInit_real_T());
 }
 
 /*

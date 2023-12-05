@@ -1,29 +1,32 @@
 /*
- * File: rtGetNaN.h
+ * File: trimf.h
  *
  * MATLAB Coder version            : 23.2
  * C/C++ source code generated on  : 05-Dec-2023 10:55:08
  */
 
-#ifndef RTGETNAN_H
-#define RTGETNAN_H
+#ifndef TRIMF_H
+#define TRIMF_H
 
 /* Include Files */
 #include "rtwtypes.h"
+#include <stddef.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern real_T rtGetNaN(void);
-extern real32_T rtGetNaNF(void);
+/* Function Declarations */
+double trimf(double x, const double params[3]);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif
 /*
- * File trailer for rtGetNaN.h
+ * File trailer for trimf.h
  *
  * [EOF]
  */

@@ -2,7 +2,7 @@
  * File: _coder_evaluatefis_api.c
  *
  * MATLAB Coder version            : 23.2
- * C/C++ source code generated on  : 24-Nov-2023 21:31:35
+ * C/C++ source code generated on  : 05-Dec-2023 10:55:08
  */
 
 /* Include Files */
@@ -25,14 +25,14 @@ emlrtContext emlrtContextGlobal = {
 };
 
 /* Function Declarations */
-static real_T (*b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
-                                   const emlrtMsgIdentifier *parentId))[3];
+static real_T b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
+                                 const emlrtMsgIdentifier *parentId);
 
-static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
-                                   const emlrtMsgIdentifier *msgId))[3];
+static real_T c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
+                                 const emlrtMsgIdentifier *msgId);
 
-static real_T (*emlrt_marshallIn(const emlrtStack *sp, const mxArray *nullptr,
-                                 const char_T *identifier))[3];
+static real_T emlrt_marshallIn(const emlrtStack *sp, const mxArray *nullptr,
+                               const char_T *identifier);
 
 static const mxArray *emlrt_marshallOut(const real_T u);
 
@@ -41,12 +41,12 @@ static const mxArray *emlrt_marshallOut(const real_T u);
  * Arguments    : const emlrtStack *sp
  *                const mxArray *u
  *                const emlrtMsgIdentifier *parentId
- * Return Type  : real_T (*)[3]
+ * Return Type  : real_T
  */
-static real_T (*b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
-                                   const emlrtMsgIdentifier *parentId))[3]
+static real_T b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
+                                 const emlrtMsgIdentifier *parentId)
 {
-  real_T(*y)[3];
+  real_T y;
   y = c_emlrt_marshallIn(sp, emlrtAlias(u), parentId);
   emlrtDestroyArray(&u);
   return y;
@@ -56,18 +56,16 @@ static real_T (*b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
  * Arguments    : const emlrtStack *sp
  *                const mxArray *src
  *                const emlrtMsgIdentifier *msgId
- * Return Type  : real_T (*)[3]
+ * Return Type  : real_T
  */
-static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
-                                   const emlrtMsgIdentifier *msgId))[3]
+static real_T c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
+                                 const emlrtMsgIdentifier *msgId)
 {
-  static const int32_T dims[2] = {1, 3};
-  real_T(*ret)[3];
-  int32_T iv[2];
-  boolean_T bv[2] = {false, false};
-  emlrtCheckVsBuiltInR2012b((emlrtConstCTX)sp, msgId, src, "double", false, 2U,
-                            (const void *)&dims[0], &bv[0], &iv[0]);
-  ret = (real_T(*)[3])emlrtMxGetData(src);
+  static const int32_T dims = 0;
+  real_T ret;
+  emlrtCheckBuiltInR2012b((emlrtConstCTX)sp, msgId, src, "double", false, 0U,
+                          (const void *)&dims);
+  ret = *(real_T *)emlrtMxGetData(src);
   emlrtDestroyArray(&src);
   return ret;
 }
@@ -76,13 +74,13 @@ static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
  * Arguments    : const emlrtStack *sp
  *                const mxArray *nullptr
  *                const char_T *identifier
- * Return Type  : real_T (*)[3]
+ * Return Type  : real_T
  */
-static real_T (*emlrt_marshallIn(const emlrtStack *sp, const mxArray *nullptr,
-                                 const char_T *identifier))[3]
+static real_T emlrt_marshallIn(const emlrtStack *sp, const mxArray *nullptr,
+                               const char_T *identifier)
 {
   emlrtMsgIdentifier thisId;
-  real_T(*y)[3];
+  real_T y;
   thisId.fIdentifier = (const char_T *)identifier;
   thisId.fParent = NULL;
   thisId.bParentIsCell = false;
@@ -117,15 +115,14 @@ void evaluatefis_api(const mxArray *prhs, const mxArray **plhs)
       NULL, /* tls */
       NULL  /* prev */
   };
-  real_T(*x)[3];
-  real_T y;
+  real_T x;
   st.tls = emlrtRootTLSGlobal;
   /* Marshall function inputs */
-  x = emlrt_marshallIn(&st, emlrtAlias(prhs), "x");
+  x = emlrt_marshallIn(&st, emlrtAliasP(prhs), "x");
   /* Invoke the target function */
-  y = evaluatefis(*x);
+  x = evaluatefis(x);
   /* Marshall function outputs */
-  *plhs = emlrt_marshallOut(y);
+  *plhs = emlrt_marshallOut(x);
 }
 
 /*

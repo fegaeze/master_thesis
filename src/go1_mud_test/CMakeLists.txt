@@ -66,7 +66,7 @@ add_dependencies(actionServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}
 add_library(controllerServiceManager src/controllerServiceManager.cpp)
 add_dependencies(controllerServiceManager ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
-add_library(robotActionController src/robotActionController.cpp ${CMAKE_SOURCE_DIR}/evaluatefis/evaluatefis.o ${CMAKE_SOURCE_DIR}/evaluatefis/rt_nonfinite.o)
+add_library(robotActionController src/robotActionController.cpp ${CMAKE_SOURCE_DIR}/evaluatefis/evaluatefis.o ${CMAKE_SOURCE_DIR}/evaluatefis/trimf.o ${CMAKE_SOURCE_DIR}/evaluatefis/rt_nonfinite.o)
 add_dependencies(robotActionController ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(robotActions src/robotActions.cpp)

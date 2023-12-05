@@ -357,7 +357,6 @@ double RobotActionController::calculatePIDControlOutput(double feedbackForce, do
 
     // Store the current command, error, and time for the next iteration
     prev_command = command;
-    prev_error = error;
     prev_time = currentTime;
 
     // Return the computed control command
@@ -405,8 +404,8 @@ double RobotActionController::calculateFISControlOutput(double error, double foo
     ROS_INFO("ERROR: %lf", error);
     ROS_INFO("MUD_STIFFNESS: %lf", mud_stiffness);
 
-    double inputValues[3] = {error, foot_displacement, mud_stiffness}; 
-    double control_output = evaluatefis(inputValues);
+    // double inputValues[3] = {error, foot_displacement, mud_stiffness}; 
+    double control_output = evaluatefis(error);
 
     if (std::isnan(control_output)) {
         return -1.0;
@@ -448,13 +447,15 @@ double RobotActionController::runControlMethod(double feedbackForce, double init
     
     double mud_stiffness = (numerator / denominator) / 1000;
 
-    // ROS_INFO("======================================");
+    ROS_INFO("======================================");
     // ROS_INFO("Feedback Force: %lf", feedbackForce);
     // ROS_INFO("Mud Stiffness: %lf", mud_stiffness);
-    // ROS_INFO("Displacement: %lf", displacement);
+    ROS_INFO("Error Change: %lf", error - prev_error);
     // ROS_INFO("Control Output: %lf", control_output);
-    // ROS_INFO("======================================");
+    ROS_INFO("======================================");
+    ros_manager.publishControllerData(error, prev_error, mud_stiffness, displacement, control_output, initial_position, current_position);
+    
+    prev_error = error;
 
-    ros_manager.publishControllerData(error, feedbackForce, mud_stiffness, displacement, control_output, initial_position, current_position);
     return control_output;
 }
