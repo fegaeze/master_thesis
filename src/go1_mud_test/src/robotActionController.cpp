@@ -404,8 +404,8 @@ double RobotActionController::calculateFISControlOutput(double error, double foo
     ROS_INFO("ERROR: %lf", error);
     ROS_INFO("MUD_STIFFNESS: %lf", mud_stiffness);
 
-    // double inputValues[3] = {error, foot_displacement, mud_stiffness}; 
-    double control_output = evaluatefis(error);
+    double inputValues[2] = {error, mud_stiffness}; 
+    double control_output = evaluatefis(inputValues);
 
     if (std::isnan(control_output)) {
         return -1.0;
@@ -448,13 +448,9 @@ double RobotActionController::runControlMethod(double feedbackForce, double init
     double mud_stiffness = (numerator / denominator) / 1000;
 
     ROS_INFO("======================================");
-    // ROS_INFO("Feedback Force: %lf", feedbackForce);
-    // ROS_INFO("Mud Stiffness: %lf", mud_stiffness);
     ROS_INFO("Error Change: %lf", error - prev_error);
-    // ROS_INFO("Control Output: %lf", control_output);
     ROS_INFO("======================================");
     ros_manager.publishControllerData(error, prev_error, mud_stiffness, displacement, control_output, initial_position, current_position);
-    
     prev_error = error;
 
     return control_output;
