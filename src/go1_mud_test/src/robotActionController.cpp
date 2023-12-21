@@ -405,7 +405,7 @@ double RobotActionController::calculateFISControlOutput(double error, double foo
     ROS_INFO("MUD_STIFFNESS: %lf", mud_stiffness);
 
     double inputValues[2] = {error, mud_stiffness}; 
-    double control_output = evaluatefis(inputValues);
+    double control_output = evaluatefis(error);
 
     if (std::isnan(control_output)) {
         return -1.0;
@@ -442,7 +442,6 @@ double RobotActionController::runControlMethod(double feedbackForce, double init
     } else if(control_method == Config::RobotController::TYPE::FIS) {
         ROS_INFO("Fuzzy Controller Running");
         control_output = calculateFISControlOutput(error, displacement, feedbackForce);
-        control_output = filter(control_output);
     }
     
     double mud_stiffness = (numerator / denominator) / 1000;
